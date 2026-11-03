@@ -25,12 +25,13 @@
         </li>
         {% if user.eh_admin or user.eh_gestor %}
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% if app == 'estrutura' %}active" aria-current="page{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle {% if app == 'estrutura' or 'preventiva' in rota %}active" aria-current="page{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-buildings" aria-hidden="true"></i> Estrutura</a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="{% url 'estrutura:unidade_lista' %}">{% if user.eh_admin %}Unidades{% else %}Minha unidade{% endif %}</a></li>
               <li><a class="dropdown-item" href="{% url 'estrutura:local_lista' %}">Locais</a></li>
               <li><a class="dropdown-item" href="{% url 'estrutura:equipamento_lista' %}">Equipamentos</a></li>
+              <li><a class="dropdown-item" href="{% url 'ordens:preventiva_lista' %}">Preventivas</a></li>
             </ul>
           </li>
           <li class="nav-item dropdown">

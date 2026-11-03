@@ -117,6 +117,8 @@ seguranca/   Treinamento, TreinamentoTecnico (valido_em(data), calcula data_vali
              EPI, TipoServico (eletrico, trabalho_em_altura, M2M treinamentos/EPIs), Incidente
              services.py (codigos_exigidos, tecnicos_aptos, registrar_incidente) + CRUDs
 ordens/      OrdemServico, HistoricoStatus, ChecklistSeguranca (1:1), Preventiva
+             notificacoes.py (e-mails), relatorios.py (gráficos), comandos gerar_preventivas e
+             verificar_treinamentos
              Choices: Status, Prioridade
              services.py (TRANSICOES, mudar_status, acoes_disponiveis, ordenar_por_prioridade)
              views.py (lista/detalhe por perfil, AcaoOrdemView base das ações), templatetags/ordens_tags.py
@@ -148,8 +150,8 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 | 2 | Base: Django + MySQL, login e perfis, unidades/locais/equipamentos, todos os models, `popular_dados`, 21 testes | **feito** |
 | 3 | Ordens de serviço: `services.py`, telas por perfil, linha do tempo, 34 testes (55 no total) | **feito** |
 | 4 | Segurança: NRs na atribuição, checklist, incidentes, `verificar_treinamentos`, cadastros, 35 testes (90 no total) | **feito** |
-| 5 | Extras | **próxima** |
-| 6 | Testes, ajustes visuais, deploy, manual, apresentação final | a fazer |
+| 5 | Extras: preventivas (RN09), QR Code, alertas por e-mail, gráficos, 17 testes (107 no total) | **feito** |
+| 6 | Testes, ajustes visuais, deploy, manual, apresentação final | **próxima** |
 
 ### Etapa 3: ordens de serviço (feita)
 - Solicitante abre chamado (local, equipamento opcional, descrição, prioridade) e vê os próprios.
@@ -177,7 +179,12 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 - CRUD de treinamentos, treinamentos dos técnicos, EPIs e tipos de serviço (Gestor/Admin).
 - Testes da RN01, RN02, RN03 e RN08.
 
-### Etapa 5: extras (próxima)
+### Etapa 5: extras (feita)
+- Agendar também `python manage.py gerar_preventivas` uma vez por dia.
+- QR Code gerado no navegador (qrcodejs via CDN, sem dependência Python); o link usa o host
+  da requisição, então só funciona no celular quando o sistema estiver publicado.
+- Contagens por data usam intervalo de data e hora, não `__date`: o MariaDB portátil não tem
+  as tabelas de fuso horário e o `__date` retornaria zero.
 - RN09: comando `gerar_preventivas` (cria a OS 7 dias antes e avança `proxima_data`).
 - QR Code por equipamento (abre chamado já com o equipamento preenchido).
 - Alertas por e-mail (no desenvolvimento, `EMAIL_BACKEND` de console).
@@ -185,7 +192,4 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 
 ## 9. Pendências conhecidas
 
-- O `.env.example` foi removido do repositório e o README ainda o cita. Recriar só com valores de exemplo.
-- Validar se a migração `estrutura/0002_local_equipamento_local_local_unico_por_unidade.py` está
-  coerente (`python manage.py makemigrations --check`).
 - Preencher a autoria no README (nome e links).
