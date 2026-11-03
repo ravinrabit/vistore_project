@@ -8,6 +8,7 @@ from django.utils import timezone
 from contas.models import Perfil
 from seguranca.services import pode_registrar_incidente, tecnico_apto, treinamentos_pendentes
 
+from . import notificacoes
 from .models import ChecklistSeguranca, HistoricoStatus, OrdemServico, Preventiva, Prioridade, Status
 
 # RN05: para cada status, os próximos status permitidos.
@@ -102,7 +103,9 @@ def atribuir(ordem, usuario, tecnico):
             f"{tecnico.nome} não tem treinamento válido em: {', '.join(pendentes)} (RN01)."
         )
     ordem.tecnico = tecnico
-    return mudar_status(ordem, Status.ATRIBUIDO, usuario)
+    mudar_status(ordem, Status.ATRIBUIDO, usuario)
+    notificacoes.avisar_atribuicao(ordem)
+    return ordem
 
 
 @transaction.atomic
@@ -118,8 +121,10 @@ def verificar_treinamentos(data=None):
     devolvidas = []
     atribuidas = OrdemServico.objects.filter(status=Status.ATRIBUIDO).select_related("tecnico", "tipo_servico")
     for ordem in atribuidas:
-        if not ordem.tecnico.is_active or not tecnico_apto(ordem.tecnico, ordem.tipo_servico, data):
+        tecnico = ordem.tecnico
+        if not tecnico.is_active or not tecnico_apto(tecnico, ordem.tipo_servico, data):
             devolvidas.append(devolver_para_atribuicao(ordem))
+            notificacoes.avisar_devolucao(ordem, tecnico)
     return devolvidas
 
 
@@ -163,7 +168,9 @@ def concluir(ordem, usuario):
         raise ValidationError(
             "Esta OS teve incidente com lesão ou afastamento e aguarda a revisão do gestor (RN08)."
         )
-    return mudar_status(ordem, Status.CONCLUIDO, usuario)
+    mudar_status(ordem, Status.CONCLUIDO, usuario)
+    notificacoes.avisar_conclusao(ordem)
+    return ordem
 
 
 def concluir_revisao(ordem, usuario):

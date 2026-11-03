@@ -3,6 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from contas.models import Perfil, Usuario
+from ordens import notificacoes
 from ordens.models import Status
 
 from .models import Incidente, TreinamentoTecnico
@@ -60,4 +61,5 @@ def registrar_incidente(ordem, usuario, descricao, gravidade, houve_lesao=False,
     if houve_lesao or houve_afastamento:
         ordem.requer_revisao_seguranca = True
         ordem.save(update_fields=["requer_revisao_seguranca"])
+        notificacoes.avisar_revisao_seguranca(ordem, incidente)
     return incidente
