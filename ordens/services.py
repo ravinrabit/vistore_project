@@ -4,6 +4,7 @@ from django.db.models import Case, IntegerField, Value, When
 from django.utils import timezone
 
 from contas.models import Perfil
+from seguranca.services import treinamentos_pendentes
 
 from .models import HistoricoStatus, OrdemServico, Prioridade, Status
 
@@ -93,7 +94,11 @@ def atribuir(ordem, usuario, tecnico):
         or tecnico.unidade_id != ordem.local.unidade_id
     ):
         raise ValidationError("Escolha um técnico ativo da unidade da OS.")
-    # A checagem das NRs exigidas (RN01/RN04) entra aqui na etapa 4.
+    pendentes = treinamentos_pendentes(tecnico, ordem.tipo_servico)
+    if pendentes:
+        raise ValidationError(
+            f"{tecnico.nome} não tem treinamento válido em: {', '.join(pendentes)} (RN01)."
+        )
     ordem.tecnico = tecnico
     return mudar_status(ordem, Status.ATRIBUIDO, usuario)
 

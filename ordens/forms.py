@@ -1,9 +1,10 @@
 from django import forms
 
 from contas.forms import EstiloBootstrapMixin
-from contas.models import Perfil, Usuario
+from contas.models import Usuario
 from estrutura.models import Equipamento, Local
 from seguranca.models import TipoServico
+from seguranca.services import codigos_exigidos, tecnicos_aptos
 
 from .models import OrdemServico
 
@@ -46,9 +47,15 @@ class AtribuirForm(EstiloBootstrapMixin, forms.Form):
 
     def __init__(self, *args, ordem, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["tecnico"].queryset = Usuario.objects.filter(
-            perfil=Perfil.TECNICO, is_active=True, unidade=ordem.local.unidade_id
-        )
+        campo = self.fields["tecnico"]
+        campo.queryset = tecnicos_aptos(ordem.local.unidade_id, ordem.tipo_servico)
+        exigidos = ", ".join(sorted(codigos_exigidos(ordem.tipo_servico))) or "nenhum"
+        campo.help_text = f"Só aparecem técnicos com os treinamentos exigidos em dia. Exigidos: {exigidos}."
+        if not campo.queryset.exists():
+            campo.help_text = (
+                f"Nenhum técnico da unidade tem em dia os treinamentos exigidos ({exigidos}). "
+                "Atualize os treinamentos antes de atribuir."
+            )
 
 
 class CancelarForm(EstiloBootstrapMixin, forms.Form):
