@@ -14,6 +14,7 @@
             <td><code>{{ equipamento.patrimonio }}</code></td>
             <td class="small">{{ equipamento.local }}</td>
             <td class="text-end text-nowrap">
+              <a href="{% url 'estrutura:equipamento_qrcode' equipamento.pk %}" class="btn btn-sm btn-outline-primary" title="QR Code" aria-label="QR Code para abrir chamado"><i class="bi bi-qr-code" aria-hidden="true"></i></a>
               <a href="{% url 'estrutura:equipamento_editar' equipamento.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
               <a href="{% url 'estrutura:equipamento_excluir' equipamento.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
             </td>

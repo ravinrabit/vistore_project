@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import ProtectedError, Q
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from contas.mixins import FiltroUnidadeMixin, GestaoMixin, SomenteAdminMixin
 
@@ -171,3 +171,15 @@ class EquipamentoDeleteView(GestaoMixin, FiltroUnidadeMixin, ExclusaoProtegidaMi
     campo_unidade = "local__unidade"
     success_url = reverse_lazy("estrutura:equipamento_lista")
     mensagem_protegido = "Este equipamento tem ordens de serviço ou preventivas e não pode ser excluído."
+
+
+class EquipamentoQRCodeView(GestaoMixin, FiltroUnidadeMixin, DetailView):
+    """Etiqueta para imprimir e colar no equipamento: o QR abre o chamado já preenchido."""
+
+    model = Equipamento
+    campo_unidade = "local__unidade"
+    template_name = "estrutura/equipamento_qrcode.html"
+
+    def get_context_data(self, **kwargs):
+        url = reverse("ordens:nova") + f"?equipamento={self.object.pk}"
+        return super().get_context_data(url_chamado=self.request.build_absolute_uri(url), **kwargs)

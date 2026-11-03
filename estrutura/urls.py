@@ -18,5 +18,6 @@ urlpatterns = [
     path("equipamentos/", views.EquipamentoListView.as_view(), name="equipamento_lista"),
     path("equipamentos/novo/", views.EquipamentoCreateView.as_view(), name="equipamento_novo"),
     path("equipamentos/<int:pk>/editar/", views.EquipamentoUpdateView.as_view(), name="equipamento_editar"),
+    path("equipamentos/<int:pk>/qrcode/", views.EquipamentoQRCodeView.as_view(), name="equipamento_qrcode"),
     path("equipamentos/<int:pk>/excluir/", views.EquipamentoDeleteView.as_view(), name="equipamento_excluir"),
 ]

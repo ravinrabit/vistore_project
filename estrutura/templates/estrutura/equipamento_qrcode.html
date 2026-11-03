@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}QR Code · {{ equipamento.nome }}{% endblock %}
+{% block conteudo %}
+<div class="nao-imprimir d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <a href="{% url 'estrutura:equipamento_lista' %}" class="small text-decoration-none"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para equipamentos</a>
+    <h1 class="h3 m-0">QR Code do equipamento</h1>
+  </div>
+  <button type="button" class="btn btn-vistore" onclick="window.print()"><i class="bi bi-printer" aria-hidden="true"></i> Imprimir etiqueta</button>
+</div>
+
+<div class="card etiqueta-qr mx-auto">
+  <div class="card-body text-center p-4">
+    <div class="fw-bold text-vistore"><i class="bi bi-shield-check" aria-hidden="true"></i> Vistore · SENAC-DF</div>
+    <div id="qrcode" class="my-3" role="img" aria-label="QR Code para abrir chamado deste equipamento"></div>
+    <div class="fw-semibold">{{ equipamento.nome }}</div>
+    <div class="small">Patrimônio {{ equipamento.patrimonio }}</div>
+    <div class="small text-body-secondary">{{ equipamento.local }}</div>
+    <div class="mt-2 small">Problema neste equipamento? Aponte a câmera e abra um chamado.</div>
+  </div>
+</div>
+<p class="nao-imprimir text-center small text-body-secondary mt-3">Endereço do QR: <code>{{ url_chamado }}</code></p>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{{ url_chamado|json_script:"url-chamado" }}
+<script>
+  new QRCode(document.getElementById("qrcode"), {
+    text: JSON.parse(document.getElementById("url-chamado").textContent),
+    width: 200, height: 200, colorDark: "#00315e", colorLight: "#ffffff",
+  });
+</script>
+{% endblock %}

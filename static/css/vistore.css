@@ -165,3 +165,12 @@ a.card-indicador:hover { box-shadow: 0 4px 12px rgba(16, 24, 40, .12); }
 
 /* Rodapé */
 .rodape { background: var(--vt-superficie); border-top: 3px solid var(--vt-laranja); color: var(--vt-texto-suave); }
+
+/* Etiqueta de QR Code: na impressão só a etiqueta aparece */
+.etiqueta-qr { max-width: 22rem; border: 2px dashed var(--vt-borda-campo); }
+.etiqueta-qr #qrcode img, .etiqueta-qr #qrcode canvas { margin: 0 auto; }
+@media print {
+  .navbar, .rodape, .nao-imprimir, .alert { display: none !important; }
+  body { background: #fff; }
+  .etiqueta-qr { box-shadow: none; }
+}

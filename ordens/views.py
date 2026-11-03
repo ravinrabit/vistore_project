@@ -77,6 +77,18 @@ class OrdemCreateView(PerfilRequeridoMixin, UsuarioNoFormMixin, CreateView):
     success_url = reverse_lazy("ordens:lista")
     extra_context = {"titulo": "Abrir chamado"}
 
+    def get_initial(self):
+        # Vindo do QR Code do equipamento: /ordens/nova/?equipamento=<id>
+        inicial = super().get_initial()
+        pk = self.request.GET.get("equipamento", "")
+        if not pk.isdigit():
+            return inicial
+        form = self.get_form_class()(usuario=self.request.user)
+        equipamento = form.fields["equipamento"].queryset.filter(pk=pk).first()
+        if equipamento:
+            inicial.update(equipamento=equipamento, local=equipamento.local)
+        return inicial
+
     def form_valid(self, form):
         dados = form.cleaned_data
         self.object = services.abrir_ordem(
