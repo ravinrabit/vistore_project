@@ -96,7 +96,7 @@ class HistoricoStatus(models.Model):
     class Meta:
         verbose_name = "histórico de status"
         verbose_name_plural = "históricos de status"
-        ordering = ["data_hora"]
+        ordering = ["data_hora", "id"]  # o id desempata mudanças gravadas no mesmo instante
 
     def __str__(self):
         anterior = self.get_status_anterior_display() or "—"
