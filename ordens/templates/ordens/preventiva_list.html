@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Preventivas{% endblock %}
+{% block conteudo %}
+{% url 'ordens:preventiva_nova' as url_novo %}
+{% include "partials/cabecalho_lista.html" with titulo="Manutenções preventivas" url_novo=url_novo %}
+<p class="text-body-secondary small">A OS de cada preventiva ativa é gerada automaticamente 7 dias antes da próxima data (RN09).</p>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Equipamento</th><th>Tipo de serviço</th><th>A cada</th><th>Próxima data</th><th>Situação</th><th class="text-end">Ações</th></tr></thead>
+      <tbody>
+        {% for preventiva in object_list %}
+          <tr>
+            <td class="fw-semibold">{{ preventiva.equipamento.nome }}<span class="small text-body-secondary d-block">{{ preventiva.equipamento.local.sala }}{% if user.eh_admin %} · {{ preventiva.equipamento.local.unidade }}{% endif %}</span></td>
+            <td>{{ preventiva.tipo_servico }}</td>
+            <td>{{ preventiva.periodicidade_dias }} dias</td>
+            <td>{{ preventiva.proxima_data|date:"d/m/Y" }}</td>
+            <td>{% if preventiva.ativa %}<span class="badge badge-os badge-os--concluido">Ativa</span>{% else %}<span class="badge badge-os badge-os--aberto">Inativa</span>{% endif %}</td>
+            <td class="text-end text-nowrap">
+              <a href="{% url 'ordens:preventiva_editar' preventiva.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <a href="{% url 'ordens:preventiva_excluir' preventiva.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="estado-vazio"><i class="bi bi-calendar-x" aria-hidden="true"></i>Nenhuma preventiva cadastrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacao.html" %}
+{% endblock %}

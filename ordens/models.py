@@ -51,6 +51,10 @@ class OrdemServico(models.Model):
         "seguranca.TipoServico", verbose_name="tipo de serviço", on_delete=models.PROTECT,
         related_name="ordens", null=True, blank=True,
     )
+    preventiva = models.ForeignKey(
+        "Preventiva", verbose_name="preventiva de origem", on_delete=models.PROTECT,
+        related_name="ordens", null=True, blank=True,
+    )
 
     aberta_em = models.DateTimeField("aberta em", auto_now_add=True)
     iniciada_em = models.DateTimeField("iniciada em", null=True, blank=True)
@@ -127,6 +131,11 @@ class Preventiva(models.Model):
     tipo_servico = models.ForeignKey(
         "seguranca.TipoServico", verbose_name="tipo de serviço", on_delete=models.PROTECT,
         related_name="preventivas",
+    )
+    responsavel = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name="responsável", on_delete=models.PROTECT,
+        related_name="preventivas", null=True, blank=True,
+        help_text="Aparece como solicitante das OS geradas.",
     )
     periodicidade_dias = models.PositiveIntegerField("periodicidade (dias)")
     proxima_data = models.DateField("próxima data")

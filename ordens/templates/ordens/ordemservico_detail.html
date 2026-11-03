@@ -32,7 +32,7 @@
         <dl class="row mb-0">
           <dt class="col-sm-4">Local</dt><dd class="col-sm-8">{{ ordem.local }}</dd>
           <dt class="col-sm-4">Equipamento</dt><dd class="col-sm-8">{{ ordem.equipamento|default:"—" }}</dd>
-          <dt class="col-sm-4">Solicitante</dt><dd class="col-sm-8">{{ ordem.solicitante.nome }}</dd>
+          <dt class="col-sm-4">Solicitante</dt><dd class="col-sm-8">{{ ordem.solicitante.nome }}{% if ordem.preventiva_id %} <span class="badge badge-os badge-os--classificado"><i class="bi bi-calendar-check" aria-hidden="true"></i> Preventiva</span>{% endif %}</dd>
           <dt class="col-sm-4">Tipo de serviço</dt><dd class="col-sm-8">{{ ordem.tipo_servico|default:"A classificar" }}</dd>
           <dt class="col-sm-4">Riscos identificados</dt><dd class="col-sm-8">{{ ordem.riscos|default:"—"|linebreaksbr }}</dd>
           <dt class="col-sm-4">Técnico</dt><dd class="col-sm-8">{{ ordem.tecnico.nome|default:"Não atribuído" }}</dd>

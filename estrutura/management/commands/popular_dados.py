@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from contas.models import Perfil, Usuario
 from estrutura.models import Equipamento, Local, TipoAmbiente, Unidade
+from ordens.models import Preventiva
 from seguranca.models import EPI, TipoServico, Treinamento, TreinamentoTecnico
 
 SENHA_PADRAO = "vistore123"
@@ -79,6 +80,7 @@ class Command(BaseCommand):
         epis = self._criar_epis()
         self._criar_tipos_servico(treinamentos, epis)
         self._criar_usuarios(unidades, treinamentos)
+        self._criar_preventivas()
         self.stdout.write(self.style.SUCCESS("Dados de exemplo criados com sucesso!"))
 
     def _criar_unidades(self):
@@ -162,3 +164,16 @@ class Command(BaseCommand):
         self.stdout.write(f"  {len(dados)} usuários (senha: {SENHA_PADRAO})")
         for email, _, perfil, _ in dados:
             self.stdout.write(f"    {perfil.label:<20} {email}")
+
+    def _criar_preventivas(self):
+        # Limpeza do ar a cada 90 dias, vencendo em 5 dias: o gerar_preventivas já cria a OS
+        Preventiva.objects.get_or_create(
+            equipamento=Equipamento.objects.get(patrimonio="TAG-0001"),
+            tipo_servico=TipoServico.objects.get(nome="Manutenção de ar-condicionado"),
+            defaults={
+                "responsavel": Usuario.objects.get(email="gestor@vistore.test"),
+                "periodicidade_dias": 90,
+                "proxima_data": timezone.localdate() + timedelta(days=5),
+            },
+        )
+        self.stdout.write("  1 preventiva (rode: python manage.py gerar_preventivas)")

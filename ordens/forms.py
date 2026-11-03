@@ -6,7 +6,7 @@ from estrutura.models import Equipamento, Local
 from seguranca.models import EPI, TipoServico
 from seguranca.services import codigos_exigidos, tecnicos_aptos
 
-from .models import OrdemServico
+from .models import OrdemServico, Preventiva
 
 
 class AbrirOrdemForm(EstiloBootstrapMixin, forms.ModelForm):
@@ -94,3 +94,19 @@ class ChecklistForm(EstiloBootstrapMixin, forms.Form):
 
 class ConfirmarForm(forms.Form):
     pass
+
+
+class PreventivaForm(EstiloBootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Preventiva
+        fields = ["equipamento", "tipo_servico", "periodicidade_dias", "proxima_data", "ativa"]
+        widgets = {"proxima_data": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
+        help_texts = {"proxima_data": "A OS é gerada automaticamente 7 dias antes desta data (RN09)."}
+
+    def __init__(self, *args, usuario, **kwargs):
+        super().__init__(*args, **kwargs)
+        equipamentos = Equipamento.objects.select_related("local")
+        if not usuario.eh_admin:
+            equipamentos = equipamentos.filter(local__unidade=usuario.unidade_id)
+        self.fields["equipamento"].queryset = equipamentos
+        self.fields["periodicidade_dias"].min_value = 1

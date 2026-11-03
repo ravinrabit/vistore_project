@@ -1,18 +1,19 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DetailView, FormView, ListView
+from django.views.generic import CreateView, DeleteView, DetailView, FormView, ListView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 
-from contas.mixins import PerfilRequeridoMixin
-from estrutura.views import BuscaMixin, UsuarioNoFormMixin
+from contas.mixins import FiltroUnidadeMixin, GestaoMixin, PerfilRequeridoMixin
+from estrutura.views import BuscaMixin, ExclusaoProtegidaMixin, UsuarioNoFormMixin
 from seguranca import services as seguranca
 from seguranca.forms import IncidenteForm
 
 from . import forms, services
-from .models import OrdemServico, Status
+from .models import OrdemServico, Preventiva, Status
 
 
 class OrdensDoUsuarioMixin(LoginRequiredMixin):
@@ -250,3 +251,46 @@ class RevisaoView(AcaoOrdemView):
 
     def executar(self, dados):
         services.concluir_revisao(self.object, self.request.user)
+
+
+# --- Preventivas (RN09) ----------------------------------------------------
+
+class PreventivaListView(GestaoMixin, FiltroUnidadeMixin, BuscaMixin, ListView):
+    model = Preventiva
+    campo_unidade = "equipamento__local__unidade"
+    campos_busca = ["equipamento__nome", "equipamento__patrimonio", "tipo_servico__nome"]
+    paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("equipamento__local__unidade", "tipo_servico")
+
+
+class PreventivaCreateView(GestaoMixin, UsuarioNoFormMixin, SuccessMessageMixin, CreateView):
+    model = Preventiva
+    form_class = forms.PreventivaForm
+    template_name = "crud/form.html"
+    success_url = reverse_lazy("ordens:preventiva_lista")
+    success_message = "Preventiva cadastrada."
+    extra_context = {"titulo": "Nova preventiva"}
+
+    def form_valid(self, form):
+        form.instance.responsavel = self.request.user
+        return super().form_valid(form)
+
+
+class PreventivaUpdateView(GestaoMixin, FiltroUnidadeMixin, UsuarioNoFormMixin, SuccessMessageMixin, UpdateView):
+    model = Preventiva
+    form_class = forms.PreventivaForm
+    template_name = "crud/form.html"
+    campo_unidade = "equipamento__local__unidade"
+    success_url = reverse_lazy("ordens:preventiva_lista")
+    success_message = "Preventiva atualizada."
+    extra_context = {"titulo": "Editar preventiva"}
+
+
+class PreventivaDeleteView(GestaoMixin, FiltroUnidadeMixin, ExclusaoProtegidaMixin, DeleteView):
+    model = Preventiva
+    template_name = "crud/confirmar_exclusao.html"
+    campo_unidade = "equipamento__local__unidade"
+    success_url = reverse_lazy("ordens:preventiva_lista")
+    mensagem_protegido = "Esta preventiva já gerou ordens de serviço. Desative-a em vez de excluir."

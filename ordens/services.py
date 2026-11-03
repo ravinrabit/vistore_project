@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Case, IntegerField, Value, When
@@ -6,7 +8,7 @@ from django.utils import timezone
 from contas.models import Perfil
 from seguranca.services import pode_registrar_incidente, tecnico_apto, treinamentos_pendentes
 
-from .models import ChecklistSeguranca, HistoricoStatus, OrdemServico, Prioridade, Status
+from .models import ChecklistSeguranca, HistoricoStatus, OrdemServico, Preventiva, Prioridade, Status
 
 # RN05: para cada status, os próximos status permitidos.
 TRANSICOES = {
@@ -225,3 +227,32 @@ def avaliar(ordem, usuario, nota):
     ordem.avaliacao = nota
     ordem.save(update_fields=["avaliacao"])
     return ordem
+
+
+DIAS_ANTECEDENCIA_PREVENTIVA = 7
+
+
+@transaction.atomic
+def gerar_ordem_preventiva(preventiva):
+    """Cria a OS já classificada (o tipo de serviço é conhecido) e agenda a próxima data."""
+    equipamento = preventiva.equipamento
+    ordem = abrir_ordem(
+        solicitante=preventiva.responsavel, local=equipamento.local, equipamento=equipamento,
+        descricao=f"Manutenção preventiva: {preventiva.tipo_servico} em {equipamento} "
+                  f"(prevista para {preventiva.proxima_data:%d/%m/%Y}).",
+        prioridade=Prioridade.MEDIA,
+    )
+    ordem.preventiva = preventiva
+    ordem.tipo_servico = preventiva.tipo_servico
+    mudar_status(ordem, Status.CLASSIFICADO, None)
+    preventiva.proxima_data += timedelta(days=preventiva.periodicidade_dias)
+    preventiva.save(update_fields=["proxima_data"])
+    return ordem
+
+
+def gerar_preventivas(hoje=None):
+    """RN09: gera a OS das preventivas ativas cuja data prevista está a 7 dias ou menos."""
+    hoje = hoje or timezone.localdate()
+    limite = hoje + timedelta(days=DIAS_ANTECEDENCIA_PREVENTIVA)
+    pendentes = Preventiva.objects.filter(ativa=True, proxima_data__lte=limite, responsavel__isnull=False)
+    return [gerar_ordem_preventiva(p) for p in pendentes.select_related("equipamento__local", "tipo_servico")]
