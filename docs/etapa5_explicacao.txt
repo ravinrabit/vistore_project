@@ -1,0 +1,143 @@
+VISTORE - ETAPA 5: EXTRAS
+Explicação para a apresentação
+======================================================================
+
+1. O QUE FOI FEITO
+----------------------------------------------------------------------
+- Preventivas (RN09): o gestor cadastra uma manutenção que se repete
+  (ex.: limpar o ar-condicionado a cada 90 dias). O sistema cria a OS
+  sozinho 7 dias antes da data prevista.
+- QR Code por equipamento: uma etiqueta para imprimir e colar no
+  equipamento. Quem aponta a câmera abre um chamado já com o equipamento
+  e o local preenchidos.
+- Alertas por e-mail: o técnico, o solicitante e o gestor recebem aviso
+  nas mudanças que precisam da atenção deles.
+- Gráficos: os painéis do gestor e do administrador mostram as ordens
+  por status e os chamados abertos nas últimas 8 semanas.
+
+
+2. ARQUIVOS PRINCIPAIS
+----------------------------------------------------------------------
+ordens/services.py                      gerar_preventivas (RN09)
+ordens/management/commands/gerar_preventivas.py   Comando agendável
+ordens/notificacoes.py                  Os e-mails do sistema
+ordens/relatorios.py                    Os números dos gráficos
+estrutura/templates/estrutura/equipamento_qrcode.html   Etiqueta com QR
+templates/partials/graficos_ordens.html Gráficos (Chart.js) + tabelas
+.env.example                            Modelo do .env (inclui o e-mail)
+Testes: 17 novos (107 no projeto).
+
+
+3. DECISÕES IMPORTANTES (E COMO EXPLICAR NA BANCA)
+----------------------------------------------------------------------
+
+3.1 Preventivas (RN09)
+    O comando "python manage.py gerar_preventivas" procura as preventivas
+    ativas cuja próxima data está a 7 dias ou menos e, para cada uma:
+    - cria a OS já "Aguardando atribuição" (Classificada), porque o tipo de
+      serviço já é conhecido. É assim no fluxograma: a preventiva entra na
+      etapa de classificação;
+    - registra o responsável pela preventiva como solicitante;
+    - empurra a próxima data em "periodicidade" dias.
+    Como a data anda para frente, rodar o comando duas vezes no mesmo dia
+    não cria OS repetida (há teste para isso).
+    A OS guarda de qual preventiva veio (campo preventiva), e o detalhe
+    mostra a etiqueta "Preventiva".
+    Assim como o verificar_treinamentos, é agendado uma vez por dia no
+    Agendador de Tarefas do Windows (ou cron no Linux).
+
+3.2 QR Code
+    O QR é desenhado no navegador pela biblioteca qrcodejs (via CDN), então
+    o projeto não ganhou nenhuma dependência Python nova.
+    Ele guarda o endereço /ordens/nova/?equipamento=<id>. A tela de abrir
+    chamado lê esse parâmetro e preenche equipamento e local, mas só se o
+    equipamento for da unidade de quem está logado. Se não for, ou se o
+    parâmetro vier errado, o formulário abre vazio, sem erro (há testes).
+    A página tem um botão de imprimir; o CSS de impressão esconde tudo
+    menos a etiqueta.
+    Observação: em localhost o QR aponta para o próprio computador. Ele só
+    funciona no celular de outra pessoa quando o sistema estiver publicado.
+
+3.3 Alertas por e-mail
+    Quem recebe:
+    - técnico: quando uma OS é atribuída a ele;
+    - solicitante: quando o chamado é concluído (convite para avaliar);
+    - gestores da unidade: incidente com lesão/afastamento (RN08);
+    - gestores e o técnico: quando a OS volta para atribuição (RN03).
+    Duas escolhas importantes:
+    - transaction.on_commit: o e-mail só sai depois que a mudança foi
+      gravada no banco. Se algo der errado e a gravação for desfeita, não
+      sai e-mail falando de uma mudança que não aconteceu;
+    - fail_silently=True: se o servidor de e-mail cair, a OS continua
+      funcionando. O e-mail é um aviso, não uma regra de negócio.
+    No desenvolvimento, o EMAIL_BACKEND é o de console: os e-mails aparecem
+    no terminal do runserver. Em produção, basta trocar no .env (ver
+    .env.example).
+
+3.4 Gráficos
+    Chart.js via CDN, sem framework. Escolhas:
+    - cada gráfico tem uma série só e uma cor só. Nenhuma informação
+      depende de distinguir cores, o que ajuda daltônicos;
+    - a cor é um azul SENAC um pouco mais claro (#1f66b0), validado para
+      contraste e luminosidade de gráfico;
+    - cada gráfico tem "Ver os números em tabela", para leitores de tela e
+      para quem prefere os números;
+    - o gestor vê só a própria unidade; o administrador vê todas.
+    Problema encontrado e resolvido: o filtro aberta_em__date do Django
+    precisa das tabelas de fuso horário do MariaDB, que o MariaDB portátil
+    não traz, e a contagem saía zero. A solução foi filtrar por um intervalo
+    de data e hora (de segunda 00:00 até a segunda seguinte), que funciona
+    em qualquer banco.
+
+3.5 Uma correção de bônus
+    O histórico ordenava só por data e hora. Quando duas mudanças são
+    gravadas no mesmo instante (a preventiva cria a OS e já a classifica),
+    a ordem ficava ambígua. Agora o id desempata (migração 0005).
+
+
+4. TESTES AUTOMATIZADOS
+----------------------------------------------------------------------
+Comando: python manage.py test     (com o MariaDB rodando)
+Resultado: 107 testes, todos passando (90 das etapas 2 a 4 + 17 novos).
+
+ordens/tests/test_preventivas.py   RN09: 7 dias antes, inativa e antes
+                                   da hora não geram, não duplica, comando
+estrutura/tests/test_qrcode.py     link certo, formulário preenchido,
+                                   outra unidade e parâmetro inválido
+ordens/tests/test_notificacoes.py  quem recebe cada e-mail; desativado não
+ordens/tests/test_painel.py        os números do gráfico respeitam a unidade
+
+
+5. ROTEIRO DE DEMONSTRAÇÃO (senha de todos: vistore123)
+----------------------------------------------------------------------
+1) Rodar "python manage.py popular_dados": ele cria uma preventiva do
+   ar-condicionado da Sala 101 vencendo em 5 dias.
+2) Rodar "python manage.py gerar_preventivas": a OS aparece no painel do
+   gestor em "Precisa da sua ação", já classificada.
+3) Gestor atribui o técnico: olhar o terminal do runserver, o e-mail para
+   o técnico aparece lá.
+4) Gestor: Estrutura > Equipamentos > ícone de QR. Imprimir a etiqueta.
+   Abrir o endereço do QR: o chamado vem preenchido.
+5) Mostrar os gráficos no painel do gestor e o "Ver os números em tabela".
+
+
+6. PERGUNTAS QUE A BANCA PODE FAZER
+----------------------------------------------------------------------
+P: Por que a OS preventiva já nasce classificada?
+R: Porque o tipo de serviço vem da preventiva. É o que o fluxograma mostra
+   ("preventiva entra aqui 7 dias antes"). O gestor só precisa atribuir,
+   e a RN01 continua valendo na atribuição.
+
+P: E se o e-mail falhar?
+R: A OS segue normalmente (fail_silently). E o e-mail nunca sai antes da
+   gravação no banco (on_commit).
+
+P: Por que não usar uma biblioteca Python para o QR Code?
+R: Para não aumentar as dependências. O navegador desenha o QR com
+   JavaScript, e o servidor só monta o endereço.
+
+
+7. PRÓXIMA ETAPA (6)
+----------------------------------------------------------------------
+Testes finais, ajustes visuais, deploy (publicar o sistema), manual do
+usuário e a apresentação final.
