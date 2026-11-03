@@ -73,7 +73,7 @@ cp .env.example .env              # no Windows: copy .env.example .env
 # Edite o .env: gere uma SECRET_KEY e preencha a senha do banco
 
 python manage.py migrate
-python manage.py popular_dados    # dados de exemplo (opcional)
+python manage.py popular_dados   
 python manage.py runserver
 ```
 
