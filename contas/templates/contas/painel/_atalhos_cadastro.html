@@ -1,6 +1,6 @@
 <h2 class="h5 mt-4 mb-3">Cadastros</h2>
 <div class="d-flex flex-wrap gap-2">
-  <a href="{% url 'estrutura:local_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg"></i> Novo local</a>
-  <a href="{% url 'estrutura:equipamento_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg"></i> Novo equipamento</a>
-  {% if user.eh_admin %}<a href="{% url 'estrutura:unidade_nova' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg"></i> Nova unidade</a>{% endif %}
+  <a href="{% url 'estrutura:local_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo local</a>
+  <a href="{% url 'estrutura:equipamento_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo equipamento</a>
+  {% if user.eh_admin %}<a href="{% url 'estrutura:unidade_nova' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova unidade</a>{% endif %}
 </div>

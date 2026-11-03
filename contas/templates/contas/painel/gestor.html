@@ -1,17 +1,24 @@
 {% extends "base.html" %}
-{% block titulo %}Painel{% endblock %}
+{% block titulo %}Painel do gestor{% endblock %}
 {% block conteudo %}
 <h1 class="h3 mb-1">Olá, {{ user.get_short_name }}</h1>
 <p class="text-body-secondary">Unidade {{ user.unidade }}.</p>
+{% url 'ordens:lista' as url_ordens %}
 <div class="row g-3">
-  {% include "partials/card_numero.html" with titulo="Chamados abertos" valor=ordens_abertas icone="inbox" cor="warning" %}
+  {% include "partials/card_numero.html" with titulo="Chamados para classificar" valor=ordens_abertas icone="inbox" cor="warning" url=url_ordens|add:"?status=ABERTO" %}
+  {% include "partials/card_numero.html" with titulo="Aguardando atribuição" valor=aguardando_atribuicao icone="person-gear" url=url_ordens|add:"?status=CLASSIFICADO" %}
+  {% include "partials/card_numero.html" with titulo="Urgentes pendentes" valor=urgentes_pendentes icone="exclamation-octagon" cor="danger" url=url_ordens %}
   {% include "partials/card_numero.html" with titulo="Treinamentos vencendo (30 dias)" valor=treinamentos_vencendo icone="exclamation-triangle" cor="danger" %}
-  {% include "partials/card_numero.html" with titulo="Locais" valor=total_locais icone="door-open" %}
-  {% include "partials/card_numero.html" with titulo="Equipamentos" valor=total_equipamentos icone="tools" %}
 </div>
-<div class="d-flex flex-wrap gap-2 mt-4">
-  <a href="{% url 'ordens:lista' %}?status=ABERTO" class="btn btn-vistore"><i class="bi bi-inbox"></i> Chamados para classificar</a>
-  <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul"></i> Todas as ordens</a>
+
+<div class="mt-4">
+  {% include "partials/lista_ordens_resumo.html" with ordens=pendencias titulo="Precisa da sua ação" vazio="Nenhum chamado esperando classificação ou atribuição." url_todas=url_ordens %}
+</div>
+
+<div class="row g-3 mt-1">
+  {% url 'estrutura:local_lista' as url_locais %}{% url 'estrutura:equipamento_lista' as url_equipamentos %}
+  {% include "partials/card_numero.html" with titulo="Locais" valor=total_locais icone="door-open" url=url_locais %}
+  {% include "partials/card_numero.html" with titulo="Equipamentos" valor=total_equipamentos icone="tools" url=url_equipamentos %}
 </div>
 {% include "contas/painel/_atalhos_cadastro.html" %}
 {% endblock %}

@@ -1,0 +1,24 @@
+{% load humanize ordens_tags %}
+{# Lista curta de OS para os painéis. Parâmetros: ordens, titulo, vazio, url_todas #}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>{{ titulo }}</span>
+    {% if url_todas %}<a href="{{ url_todas }}" class="small fw-normal">Ver todas</a>{% endif %}
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for ordem in ordens %}
+      <li class="list-group-item list-group-item-action position-relative d-flex flex-wrap align-items-center gap-2 {% if ordem.prioridade == 'URGENTE' %}os-urgente{% endif %}">
+        <a href="{% url 'ordens:detalhe' ordem.pk %}" class="stretched-link fw-semibold text-decoration-none">OS #{{ ordem.pk }}</a>
+        <span class="badge badge-os badge-os--{{ ordem.prioridade|cor_prioridade }}">
+          {% if ordem.prioridade == "URGENTE" %}<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>{% endif %}
+          {{ ordem.get_prioridade_display }}
+        </span>
+        <span class="badge badge-os badge-os--{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span>
+        <span class="text-truncate flex-grow-1" style="min-width: 8rem">{{ ordem.local.sala }} · {{ ordem.descricao|truncatechars:50 }}</span>
+        <small class="text-body-secondary text-nowrap">{{ ordem.aberta_em|naturaltime }}</small>
+      </li>
+    {% empty %}
+      <li class="list-group-item estado-vazio"><i class="bi bi-check2-all" aria-hidden="true"></i>{{ vazio }}</li>
+    {% endfor %}
+  </ul>
+</div>

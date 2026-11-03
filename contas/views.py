@@ -6,7 +6,8 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 
 from estrutura.models import Equipamento, Local, Unidade
-from ordens.models import OrdemServico, Status
+from ordens.models import OrdemServico, Prioridade, Status
+from ordens.services import ordenar_por_prioridade
 from seguranca.models import TreinamentoTecnico
 
 from .forms import LoginForm
@@ -29,7 +30,7 @@ class PainelView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         usuario = self.request.user
-        ordens = OrdemServico.objects.all()
+        ordens = OrdemServico.objects.select_related("local")
         finalizados = [Status.CONCLUIDO, Status.CANCELADO]
 
         if usuario.eh_admin:
@@ -41,18 +42,27 @@ class PainelView(LoginRequiredMixin, TemplateView):
             )
         elif usuario.eh_gestor:
             daqui_30_dias = timezone.localdate() + timedelta(days=30)
+            da_unidade = ordens.filter(local__unidade=usuario.unidade)
             contexto.update(
                 total_locais=Local.objects.filter(unidade=usuario.unidade).count(),
                 total_equipamentos=Equipamento.objects.filter(local__unidade=usuario.unidade).count(),
-                ordens_abertas=ordens.filter(local__unidade=usuario.unidade, status=Status.ABERTO).count(),
+                ordens_abertas=da_unidade.filter(status=Status.ABERTO).count(),
+                aguardando_atribuicao=da_unidade.filter(status=Status.CLASSIFICADO).count(),
+                urgentes_pendentes=da_unidade.filter(prioridade=Prioridade.URGENTE)
+                .exclude(status__in=finalizados).count(),
+                pendencias=ordenar_por_prioridade(
+                    da_unidade.filter(status__in=[Status.ABERTO, Status.CLASSIFICADO])
+                )[:5],
                 treinamentos_vencendo=TreinamentoTecnico.objects.filter(
                     tecnico__unidade=usuario.unidade,
                     data_validade__range=(timezone.localdate(), daqui_30_dias),
                 ).count(),
             )
         elif usuario.eh_tecnico:
+            meus_servicos = ordens.filter(tecnico=usuario).exclude(status__in=finalizados)
             contexto.update(
-                ordens_atribuidas=ordens.filter(tecnico=usuario).exclude(status__in=finalizados).count(),
+                ordens_atribuidas=meus_servicos.count(),
+                meus_servicos=ordenar_por_prioridade(meus_servicos)[:10],
                 meus_treinamentos=usuario.treinamentos.select_related("treinamento"),
                 hoje=timezone.localdate(),
                 limite_alerta=timezone.localdate() + timedelta(days=30),
@@ -62,5 +72,7 @@ class PainelView(LoginRequiredMixin, TemplateView):
             contexto.update(
                 minhas_abertas=minhas.exclude(status__in=finalizados).count(),
                 minhas_concluidas=minhas.filter(status=Status.CONCLUIDO).count(),
+                para_avaliar=minhas.filter(status=Status.CONCLUIDO, avaliacao__isnull=True).count(),
+                ultimas=minhas.order_by("-aberta_em")[:5],
             )
         return contexto

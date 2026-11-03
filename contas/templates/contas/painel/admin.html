@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block titulo %}Painel{% endblock %}
+{% block titulo %}Painel do administrador{% endblock %}
 {% block conteudo %}
 <h1 class="h3 mb-1">Olá, {{ user.get_short_name }}</h1>
 <p class="text-body-secondary">Visão geral de todas as unidades.</p>
@@ -10,8 +10,8 @@
   {% include "partials/card_numero.html" with titulo="Equipamentos" valor=total_equipamentos icone="tools" %}
 </div>
 <div class="d-flex flex-wrap gap-2 mt-4">
-  <a href="{% url 'ordens:lista' %}?status=ABERTO" class="btn btn-vistore"><i class="bi bi-inbox"></i> Chamados para classificar</a>
-  <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul"></i> Todas as ordens</a>
+  <a href="{% url 'ordens:lista' %}?status=ABERTO" class="btn btn-vistore"><i class="bi bi-inbox" aria-hidden="true"></i> Chamados para classificar</a>
+  <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul" aria-hidden="true"></i> Todas as ordens</a>
 </div>
 {% include "contas/painel/_atalhos_cadastro.html" %}
 {% endblock %}

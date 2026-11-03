@@ -1,30 +1,37 @@
 {% extends "base.html" %}
-{% block titulo %}Painel{% endblock %}
+{% block titulo %}Painel do técnico{% endblock %}
 {% block conteudo %}
 <h1 class="h3 mb-1">Olá, {{ user.get_short_name }}</h1>
 <p class="text-body-secondary">Seus serviços e treinamentos.</p>
-<div class="row g-3 mb-3">
-  {% include "partials/card_numero.html" with titulo="Serviços atribuídos" valor=ordens_atribuidas icone="wrench-adjustable" %}
+{% url 'ordens:lista' as url_ordens %}
+<div class="row g-3 mb-4">
+  {% include "partials/card_numero.html" with titulo="Serviços em aberto" valor=ordens_atribuidas icone="wrench-adjustable" url=url_ordens %}
 </div>
-<a href="{% url 'ordens:lista' %}" class="btn btn-vistore mb-4"><i class="bi bi-list-ul"></i> Ver meus serviços</a>
 
-<div class="card">
-  <div class="card-header">Meus treinamentos</div>
-  <ul class="list-group list-group-flush">
-    {% for item in meus_treinamentos %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ item.treinamento }}
-        {% if item.data_validade < hoje %}
-          <span class="badge badge-os badge-os--urgente">Vencido em {{ item.data_validade|date:"d/m/Y" }}</span>
-        {% elif item.data_validade <= limite_alerta %}
-          <span class="badge badge-os badge-os--execucao">Vence em {{ item.data_validade|date:"d/m/Y" }}</span>
-        {% else %}
-          <span class="badge badge-os badge-os--concluido">Válido até {{ item.data_validade|date:"d/m/Y" }}</span>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li class="list-group-item text-body-secondary">Nenhum treinamento registrado.</li>
-    {% endfor %}
-  </ul>
+<div class="row g-3">
+  <div class="col-lg-8">
+    {% include "partials/lista_ordens_resumo.html" with ordens=meus_servicos titulo="Meus serviços" vazio="Nenhum serviço atribuído a você no momento." url_todas=url_ordens %}
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">Meus treinamentos</div>
+      <ul class="list-group list-group-flush">
+        {% for item in meus_treinamentos %}
+          <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+            {{ item.treinamento.codigo }}
+            {% if item.data_validade < hoje %}
+              <span class="badge badge-os badge-os--urgente">Vencido em {{ item.data_validade|date:"d/m/Y" }}</span>
+            {% elif item.data_validade <= limite_alerta %}
+              <span class="badge badge-os badge-os--execucao">Vence em {{ item.data_validade|date:"d/m/Y" }}</span>
+            {% else %}
+              <span class="badge badge-os badge-os--concluido">Válido até {{ item.data_validade|date:"d/m/Y" }}</span>
+            {% endif %}
+          </li>
+        {% empty %}
+          <li class="list-group-item text-body-secondary">Nenhum treinamento registrado.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
 </div>
 {% endblock %}
