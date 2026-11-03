@@ -43,6 +43,16 @@ class ListaEDetalheTests(DadosOrdensTestCase):
                 self.client.force_login(usuario)
                 self.assertEqual(self.client.get(url).status_code, 404)
 
+    def test_paginas_de_erro_amigaveis(self):
+        ordem = self.nova_ordem()
+        self.client.force_login(self.gestor_enn)
+        resposta = self.client.get(reverse("ordens:detalhe", args=[ordem.pk]))
+        self.assertTemplateUsed(resposta, "404.html")
+        self.client.force_login(self.tecnico)
+        resposta = self.client.get(reverse("estrutura:local_lista"))
+        self.assertEqual(resposta.status_code, 403)
+        self.assertTemplateUsed(resposta, "403.html")
+
     def test_detalhe_mostra_linha_do_tempo(self):
         ordem = self.ordem_atribuida()
         self.client.force_login(self.solicitante)

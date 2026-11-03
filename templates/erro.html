@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{# Base das páginas de erro 403 e 404 #}
+{% block conteudo %}
+<div class="row justify-content-center py-md-5">
+  <div class="col-md-8 col-lg-6">
+    <div class="card border-top border-4 border-warning">
+      <div class="card-body p-4 text-center">
+        <i class="bi bi-{% block icone %}cone-striped{% endblock %} display-4 text-vistore" aria-hidden="true"></i>
+        <h1 class="h3 mt-3">{% block cabecalho %}{% endblock %}</h1>
+        <p class="text-body-secondary">{% block explicacao %}{% endblock %}</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+          {% if user.is_authenticated %}
+            <a href="{% url 'contas:painel' %}" class="btn btn-vistore">Ir para o painel</a>
+            <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary">Ver ordens de serviço</a>
+          {% else %}
+            <a href="{% url 'contas:login' %}" class="btn btn-vistore">Entrar</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% extends "erro.html" %}
+{% block titulo %}Acesso negado{% endblock %}
+{% block icone %}shield-lock{% endblock %}
+{% block cabecalho %}Você não tem acesso a esta página{% endblock %}
+{% block explicacao %}{% if exception %}{{ exception }}{% else %}Esta área é de outro perfil de usuário.{% endif %} Se precisar de acesso, fale com o gestor da sua unidade.{% endblock %}
