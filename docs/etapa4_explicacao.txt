@@ -1,0 +1,159 @@
+VISTORE - ETAPA 4: SEGURANÇA
+Explicação para a apresentação
+======================================================================
+
+1. O QUE FOI FEITO
+----------------------------------------------------------------------
+Nesta etapa o lema do sistema virou regra no código:
+"nenhum serviço começa sem segurança".
+
+- Atribuição: o gestor só consegue atribuir um técnico que tenha TODOS os
+  treinamentos exigidos pelo tipo de serviço válidos na data (RN01/RN04).
+- Checklist: o técnico só inicia o serviço depois de confirmar cada EPI
+  exigido e o isolamento da área (RN02).
+- Vencimento: um comando diário devolve para "Aguardando atribuição" a OS
+  cujo técnico ficou com treinamento vencido antes de começar (RN03).
+- Incidentes: o técnico (ou o gestor) registra incidentes durante o serviço.
+  Se houve lesão ou afastamento, a OS entra em revisão de segurança (RN08).
+- Cadastros: telas de treinamentos (NRs), treinamentos dos técnicos, EPIs e
+  tipos de serviço, com o menu "Segurança" na barra de navegação.
+
+Regras atendidas: RN01, RN02, RN03, RN04 e RN08.
+
+
+2. ARQUIVOS PRINCIPAIS
+----------------------------------------------------------------------
+seguranca/services.py   Regras de treinamento (quem está apto) e de incidente
+ordens/services.py      Checklist, início, conclusão, revisão e RN03
+ordens/management/commands/verificar_treinamentos.py   Comando da RN03
+seguranca/forms.py      Formulários de incidente e dos cadastros
+seguranca/views.py      Telas dos cadastros (CRUD)
+seguranca/tests/        35 testes novos (90 no projeto)
+
+
+3. DECISÕES IMPORTANTES (E COMO EXPLICAR NA BANCA)
+----------------------------------------------------------------------
+
+3.1 Quem está apto para o serviço (RN01 e RN04)
+    codigos_exigidos(tipo) junta duas fontes:
+    - os treinamentos ligados ao tipo de serviço no cadastro;
+    - NR-10 se o tipo for elétrico e NR-35 se for trabalho em altura (RN04).
+    Assim, mesmo que alguém esqueça de ligar a NR-10 a um serviço elétrico,
+    o sistema exige do mesmo jeito.
+
+    treinamentos_pendentes(tecnico, tipo, data) usa o método
+    TreinamentoTecnico.valido_em(data), criado na etapa 2, e devolve o que
+    falta. O técnico está apto quando não falta nada.
+
+    A regra é aplicada em dois lugares:
+    - no formulário, o select de técnicos mostra só os aptos (mais fácil
+      para o gestor);
+    - no services.atribuir(), que recusa um técnico sem as NRs mesmo que
+      alguém mande o formulário "na mão". A regra de verdade fica no
+      services, a tela só ajuda.
+
+3.2 Checklist antes de iniciar (RN02)
+    confirmar_checklist() só aceita o técnico da OS, com a OS "Atribuída", e
+    confere se TODOS os EPIs exigidos pelo tipo foram marcados e se a área
+    está isolada. Se faltar algo, a mensagem diz exatamente o quê.
+    iniciar() recusa a OS sem checklist confirmado. Na tela, o botão
+    "Iniciar serviço" só aparece depois do checklist.
+
+3.3 Treinamento vencido (RN03)
+    O comando "python manage.py verificar_treinamentos" percorre as OS
+    atribuídas e, se o técnico não estiver mais apto (ou foi desativado), a
+    OS volta para "Aguardando atribuição": o técnico sai e o checklist é
+    descartado (ele foi feito por outra pessoa, em outra data).
+    A mudança é registrada no histórico como "Sistema". Para isso o campo
+    usuario do HistoricoStatus passou a aceitar vazio (migração 0003).
+    Ele é um comando, e não uma tela, porque precisa rodar sozinho todo dia.
+    No Windows, isso é feito com o Agendador de Tarefas; no Linux, com cron.
+
+3.4 Incidentes e revisão de segurança (RN08)
+    registrar_incidente() grava o incidente e, se houve lesão ou afastamento,
+    marca requer_revisao_seguranca = True.
+    Decisão do projeto: enquanto a OS estiver em revisão, ela não pode ser
+    concluída. O gestor precisa analisar e clicar em "Concluir revisão de
+    segurança". Isso segue o fluxograma ("OS em revisão") e o lema.
+    O gestor vê um aviso no painel e um filtro "OS em revisão de segurança".
+
+3.5 Cadastros
+    Reaproveitam o que já existia: os mixins de permissão (GestaoMixin,
+    SomenteAdminMixin, FiltroUnidadeMixin) e os templates genéricos
+    crud/form.html e crud/confirmar_exclusao.html.
+    - Treinamentos, EPIs: gestor e administrador.
+    - Treinamentos dos técnicos: o gestor só vê e cadastra técnicos da
+      própria unidade (outra unidade dá 404).
+    - Tipos de serviço: o gestor consulta, só o administrador altera
+      (como está na tabela de perfis).
+    - A data de validade pode ficar vazia: o model calcula pela validade
+      do treinamento (ex.: 24 meses).
+
+
+4. TESTES AUTOMATIZADOS
+----------------------------------------------------------------------
+Comando: python manage.py test     (com o MariaDB rodando)
+Resultado: 90 testes, todos passando (55 das etapas 2 e 3 + 35 novos).
+
+seguranca/tests/test_treinamentos.py (RN01/RN04)
+- elétrico exige NR-10, altura exige NR-35, ambos exigem os dois;
+- precisa de todos os treinamentos; vencido não vale;
+- atribuição recusada sem NR; select mostra só os aptos.
+seguranca/tests/test_checklist.py (RN02)
+- não inicia sem checklist; todos os EPIs; área isolada obrigatória;
+- só o técnico da OS preenche; a tela troca o botão depois do checklist.
+seguranca/tests/test_verificar_treinamentos.py (RN03)
+- vencido devolve a OS, tira o técnico, apaga o checklist e grava "Sistema";
+- OS já iniciada não é afetada; o comando funciona.
+seguranca/tests/test_incidentes.py (RN08)
+- leve não marca revisão; lesão ou afastamento marcam;
+- OS em revisão só conclui depois da liberação do gestor.
+seguranca/tests/test_cadastros.py
+- permissões por perfil e filtro por unidade nos cadastros.
+
+
+5. ROTEIRO DE DEMONSTRAÇÃO (senha de todos: vistore123)
+----------------------------------------------------------------------
+O técnico de exemplo tem a NR-10 em dia e a NR-35 vencendo em 20 dias.
+
+1) Solicitante abre um chamado no quadro elétrico (casa de máquinas).
+2) Gestor classifica como "Manutenção elétrica" e atribui o técnico:
+   ele aparece, porque tem NR-10.
+3) Abrir outro chamado e classificar como "Troca de luminárias em altura"
+   (exige NR-10 e NR-35). Mostrar que o técnico continua aparecendo, mas
+   explicar que, em 20 dias, a NR-35 vence e ele some do select.
+4) Técnico abre a OS: em vez de "Iniciar", aparece "Preencher checklist".
+   Tentar confirmar sem um EPI: o sistema diz qual falta.
+5) Com o checklist completo, iniciar o serviço.
+6) Registrar um incidente com lesão: a OS entra em revisão e o botão
+   "Concluir" some. Gestor vê o aviso no painel e libera a OS.
+7) (Opcional) Rodar no terminal: python manage.py verificar_treinamentos
+
+
+6. PERGUNTAS QUE A BANCA PODE FAZER
+----------------------------------------------------------------------
+P: E se o treinamento vencer depois que o serviço começou?
+R: A RN03 fala do serviço "ainda não iniciado". Se já está em execução, o
+   técnico termina; o comando só mexe nas OS "Atribuídas".
+
+P: Por que guardar quais EPIs foram confirmados, se todos são obrigatórios?
+R: Para auditoria: fica registrado o que o técnico declarou e quando
+   (confirmado_em), caso haja um incidente depois.
+
+P: O que impede o técnico de marcar tudo sem usar os EPIs?
+R: O sistema não tem como ver o EPI. Ele garante que o técnico declarou,
+   com data e hora, sob a responsabilidade dele. O registro serve para a
+   fiscalização do gestor e para os incidentes.
+
+P: Por que o comando RN03 não roda sozinho dentro do Django?
+R: O Django só responde a requisições; tarefas agendadas ficam com o
+   sistema operacional (Agendador de Tarefas/cron). Assim é simples e
+   funciona sem nenhuma biblioteca extra.
+
+
+7. PRÓXIMA ETAPA (5 - EXTRAS)
+----------------------------------------------------------------------
+- RN09: comando gerar_preventivas (cria a OS 7 dias antes).
+- QR Code por equipamento para abrir chamado já preenchido.
+- Alertas por e-mail (console no desenvolvimento).
+- Painel com gráficos (Chart.js).
