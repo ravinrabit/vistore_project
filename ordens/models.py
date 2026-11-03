@@ -82,9 +82,10 @@ class HistoricoStatus(models.Model):
         "status anterior", max_length=15, choices=Status.choices, blank=True
     )
     status_novo = models.CharField("status novo", max_length=15, choices=Status.choices)
+    # Vazio quando a mudança é automática (ex.: comando verificar_treinamentos, RN03)
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name="usuário", on_delete=models.PROTECT,
-        related_name="mudancas_status",
+        related_name="mudancas_status", null=True, blank=True,
     )
     data_hora = models.DateTimeField("data e hora", auto_now_add=True)
 

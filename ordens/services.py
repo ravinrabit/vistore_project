@@ -4,7 +4,7 @@ from django.db.models import Case, IntegerField, Value, When
 from django.utils import timezone
 
 from contas.models import Perfil
-from seguranca.services import pode_registrar_incidente, treinamentos_pendentes
+from seguranca.services import pode_registrar_incidente, tecnico_apto, treinamentos_pendentes
 
 from .models import ChecklistSeguranca, HistoricoStatus, OrdemServico, Prioridade, Status
 
@@ -101,6 +101,24 @@ def atribuir(ordem, usuario, tecnico):
         )
     ordem.tecnico = tecnico
     return mudar_status(ordem, Status.ATRIBUIDO, usuario)
+
+
+@transaction.atomic
+def devolver_para_atribuicao(ordem, usuario=None):
+    """Volta a OS para "Aguardando atribuição": tira o técnico e descarta o checklist."""
+    ChecklistSeguranca.objects.filter(ordem=ordem).delete()
+    ordem.tecnico = None
+    return mudar_status(ordem, Status.CLASSIFICADO, usuario)
+
+
+def verificar_treinamentos(data=None):
+    """RN03: OS atribuída cujo técnico ficou sem algum treinamento exigido volta para atribuição."""
+    devolvidas = []
+    atribuidas = OrdemServico.objects.filter(status=Status.ATRIBUIDO).select_related("tecnico", "tipo_servico")
+    for ordem in atribuidas:
+        if not ordem.tecnico.is_active or not tecnico_apto(ordem.tecnico, ordem.tipo_servico, data):
+            devolvidas.append(devolver_para_atribuicao(ordem))
+    return devolvidas
 
 
 def checklist_confirmado(ordem):

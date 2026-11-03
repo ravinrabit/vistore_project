@@ -108,7 +108,7 @@
             <span class="linha-tempo__ponto" aria-hidden="true"></span>
             <span class="badge badge-os badge-os--{{ item.status_novo|cor_status }}">{{ item.get_status_novo_display }}</span>
             <div class="small text-body-secondary mt-1">
-              <time datetime="{{ item.data_hora|date:'c' }}">{{ item.data_hora|date:"d/m/Y H:i" }}</time> · {{ item.usuario.nome }}
+              <time datetime="{{ item.data_hora|date:'c' }}">{{ item.data_hora|date:"d/m/Y H:i" }}</time> · {{ item.usuario.nome|default:"Sistema" }}
             </div>
           </li>
         {% empty %}
