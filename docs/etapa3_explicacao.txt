@@ -1,0 +1,177 @@
+VISTORE - ETAPA 3: ORDENS DE SERVIÇO
+Explicação para a apresentação
+======================================================================
+
+1. O QUE FOI FEITO
+----------------------------------------------------------------------
+Nesta etapa a ordem de serviço (OS) passou a funcionar de ponta a ponta:
+
+- O Solicitante abre um chamado (local, equipamento opcional, prioridade e
+  descrição) e acompanha os próprios chamados.
+- O Gestor classifica o chamado (tipo de serviço e riscos) e atribui um técnico
+  da unidade.
+- O Técnico inicia e conclui o serviço.
+- O Solicitante avalia o serviço concluído com uma nota de 1 a 5.
+- O Solicitante ou o Gestor podem cancelar a OS, sempre com justificativa.
+- Cada OS tem uma tela de detalhe com a "linha do tempo": quem mudou o status,
+  para qual status e quando.
+- As listas mostram os chamados urgentes primeiro.
+
+Regras de negócio atendidas: RN05 (fluxo de status), RN06 (cancelamento) e
+RN07 (urgentes no topo).
+
+
+2. ARQUIVOS PRINCIPAIS
+----------------------------------------------------------------------
+ordens/services.py      Regras do fluxo da OS (o "coração" da etapa)
+ordens/forms.py         Formulários: abrir, classificar, atribuir, cancelar, avaliar
+ordens/views.py         Telas: lista, detalhe, abertura e ações
+ordens/urls.py          Endereços (/ordens/, /ordens/5/, /ordens/5/cancelar/...)
+ordens/templatetags/    Cores dos badges de status e de prioridade
+ordens/templates/       Lista e detalhe da OS
+ordens/tests/           34 testes automatizados novos (55 no projeto)
+
+
+3. DECISÕES IMPORTANTES (E COMO EXPLICAR NA BANCA)
+----------------------------------------------------------------------
+
+3.1 Por que as regras ficam em services.py e não na view?
+    A view só cuida da parte web: recebe o formulário e mostra a resposta. A
+    regra ("pode cancelar?", "pode passar de Aberto para Concluído?") fica no
+    services.py. Vantagens:
+    - A regra vale em qualquer lugar: na tela, no Django Admin, num comando
+      agendado (como o da RN03 na etapa 4) ou nos testes.
+    - Ninguém "pula" a regra criando uma tela nova e esquecendo de validar.
+    - Dá para testar a regra direto, sem simular o navegador.
+
+3.2 Tabela de transições (RN05)
+    No services.py existe um dicionário TRANSICOES. Para cada status, ele diz
+    para quais status a OS pode ir:
+
+        Aberto        -> Classificado ou Cancelado
+        Classificado  -> Atribuído ou Cancelado
+        Atribuído     -> Em execução, Classificado ou Cancelado
+        Em execução   -> Concluído ou Cancelado
+        Concluído     -> (nenhum: é final)
+        Cancelado     -> (nenhum: é final)
+
+    É uma "máquina de estados" escrita como tabela. Para mudar o fluxo, basta
+    mudar a tabela, sem espalhar vários "if" pelo código.
+    A volta de Atribuído para Classificado já está prevista para a RN03 (técnico
+    com treinamento vencido), que será feita na etapa 4.
+
+3.3 Uma função única para mudar status: mudar_status()
+    Todo o sistema muda o status por essa função. Ela:
+    1) confere na tabela se a mudança é permitida;
+    2) preenche iniciada_em (ao iniciar) ou concluida_em (ao concluir);
+    3) salva a OS;
+    4) grava um registro em HistoricoStatus (quem, de qual status, para qual, quando).
+    Ela usa @transaction.atomic: ou a OS e o histórico são gravados juntos,
+    ou nada é gravado. Assim o histórico nunca fica "furado".
+    Funções como classificar(), atribuir(), iniciar() e cancelar() checam quem
+    está fazendo a ação e depois chamam mudar_status().
+
+3.4 Cancelamento (RN06)
+    cancelar() só aceita o solicitante da OS ou o gestor da mesma unidade (ou o
+    administrador). A justificativa é obrigatória: texto vazio ou só com espaços
+    é recusado. OS concluída não pode ser cancelada, porque a tabela de
+    transições não permite.
+
+3.5 Urgentes no topo (RN07)
+    A prioridade é guardada como texto ("URGENTE", "ALTA"...). Ordenar texto em
+    ordem alfabética daria uma ordem errada (ALTA, BAIXA, MEDIA, URGENTE).
+    Por isso, ordenar_por_prioridade() usa Case/When para transformar cada
+    prioridade num número (Urgente=0, Alta=1, Média=2, Baixa=3) dentro da
+    própria consulta SQL e ordena por esse número. Dentro da mesma prioridade,
+    as mais recentes aparecem primeiro.
+
+3.6 Cada perfil só vê o que é seu
+    A classe OrdensDoUsuarioMixin filtra as OS no get_queryset:
+    - Administrador: todas;
+    - Gestor: as da sua unidade;
+    - Técnico: as atribuídas a ele;
+    - Solicitante: as que ele abriu.
+    Como o filtro fica na consulta, tentar abrir pela URL a OS de outra pessoa
+    dá erro 404 ("não encontrado"). O sistema nem revela que aquela OS existe.
+
+3.7 Botões e permissões usam a mesma regra
+    acoes_disponiveis() diz quais ações o usuário pode fazer naquela OS. A tela
+    de detalhe usa essa função para decidir quais botões mostrar, e as views das
+    ações usam a mesma função para bloquear quem tentar acessar a URL direto.
+    Mesmo assim, as funções do services.py validam de novo. São duas camadas
+    de proteção.
+
+3.8 Uma view base para todas as ações (AcaoOrdemView)
+    Classificar, atribuir, iniciar, concluir, cancelar e avaliar seguem o mesmo
+    roteiro: buscar a OS, conferir a permissão, mostrar o formulário, chamar o
+    serviço e mostrar a mensagem. Esse roteiro foi escrito uma vez só, em
+    AcaoOrdemView. Cada ação herda dela e só define o formulário e a função
+    executar(). É reaproveitamento por herança, como nos CRUDs da etapa 2.
+    Se o serviço recusar a ação (ValidationError), o erro aparece no próprio
+    formulário em vez de quebrar a página.
+
+
+4. TESTES AUTOMATIZADOS
+----------------------------------------------------------------------
+Comando: python manage.py test     (com o MariaDB rodando)
+Resultado: 55 testes, todos passando (21 da etapa 2 + 34 novos).
+
+ordens/tests/test_services.py (regras, sem navegador):
+- fluxo completo grava o histórico e as datas;
+- não é possível pular etapas (de Aberto direto para Concluído, por exemplo);
+- Concluído e Cancelado são status finais;
+- qualquer status antes de Concluído pode ser cancelado;
+- a justificativa é obrigatória; técnico e outros usuários não cancelam;
+- a avaliação só vale depois de concluída, de 1 a 5, uma vez só;
+- urgentes vêm primeiro na ordenação.
+
+ordens/tests/test_views.py (telas):
+- cada perfil vê só as próprias OS; uma OS alheia dá 404;
+- não é possível abrir chamado em local de outra unidade;
+- o técnico não abre chamado (403);
+- o fluxo completo funciona pelas telas;
+- o select de técnicos mostra só os técnicos da unidade.
+
+
+5. ROTEIRO DE DEMONSTRAÇÃO (senha de todos: vistore123)
+----------------------------------------------------------------------
+1) Entrar como solicitante@vistore.test e abrir um chamado URGENTE e outro BAIXA.
+   Mostrar que o urgente aparece primeiro em "Meus chamados".
+2) Entrar como gestor@vistore.test, abrir o chamado, clicar em "Classificar"
+   (escolher o tipo e os riscos) e depois em "Atribuir técnico".
+3) Entrar como tecnico@vistore.test, abrir "Meus serviços", clicar em
+   "Iniciar serviço" e depois em "Concluir serviço".
+4) Voltar como solicitante e avaliar com 5 estrelas.
+5) Mostrar a linha do tempo no detalhe da OS.
+6) Abrir outro chamado e tentar cancelar sem justificativa: o sistema recusa.
+7) (Opcional) Copiar a URL de uma OS, entrar com outro usuário e colar: dá 404.
+
+
+6. PERGUNTAS QUE A BANCA PODE FAZER
+----------------------------------------------------------------------
+P: E se alguém mandar um POST direto, sem usar a tela?
+R: A regra está no services.py, então o POST passa pela mesma validação. Os
+   testes de view fazem exatamente isso.
+
+P: Por que não apagar a OS cancelada?
+R: Para manter o histórico e a auditoria (mesma ideia da RN10). A OS fica com o
+   status Cancelado e a justificativa gravada.
+
+P: O que garante que o histórico não fica errado se der erro no meio?
+R: O @transaction.atomic em mudar_status(): a OS e o histórico são gravados
+   juntos, ou nada é gravado.
+
+P: Onde entram as NRs e o checklist?
+R: Na etapa 4. Os pontos já estão marcados no código: atribuir() vai verificar
+   os treinamentos exigidos (RN01/RN04) e iniciar() vai exigir o checklist
+   confirmado (RN02).
+
+
+7. PRÓXIMA ETAPA (4 - SEGURANÇA)
+----------------------------------------------------------------------
+- RN01/RN04: atribuir só técnicos com as NRs exigidas válidas; o select mostra
+  só os técnicos aptos.
+- RN02: tela de checklist; o serviço só inicia depois de confirmá-lo.
+- RN03: comando que devolve para "Aguardando atribuição" as OS cujo técnico
+  ficou com NR vencida.
+- RN08: registro de incidente com marcação para revisão de segurança.
