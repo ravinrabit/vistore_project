@@ -5,26 +5,35 @@
 <div class="row justify-content-center">
   <div class="col-lg-8">
     <h1 class="h3 mb-3">{{ titulo }}</h1>
-    <div class="card shadow-sm border-0">
+    {% block antes_do_form %}{% endblock %}
+    <div class="card">
       <div class="card-body p-4">
         <form method="post" novalidate>
           {% csrf_token %}
-          {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ form.non_field_errors|join:" " }}</div>
+          {% endif %}
           {% for campo in form %}
             <div class="mb-3 {% if campo.widget_type == 'checkbox' %}form-check{% endif %}">
               {% if campo.widget_type == 'checkbox' %}
                 {{ campo }} <label class="form-check-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
               {% else %}
-                <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+                <label class="form-label" for="{{ campo.id_for_label }}">
+                  {{ campo.label }}{% if campo.field.required %} <span class="obrigatorio" aria-hidden="true">*</span><span class="visually-hidden">(obrigatório)</span>{% endif %}
+                </label>
                 {{ campo }}
               {% endif %}
               {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
-              {% for erro in campo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+              {% if campo.errors %}
+                <div class="erro-campo" id="{{ campo.auto_id }}-erro">
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ campo.errors|join:" " }}
+                </div>
+              {% endif %}
             </div>
           {% endfor %}
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-vistore"><i class="bi bi-check-lg"></i> {{ rotulo_botao|default:"Salvar" }}</button>
-            <a href="{{ view.success_url }}" class="btn btn-outline-secondary">Cancelar</a>
+          <div class="d-flex flex-wrap align-items-center gap-2 pt-2">
+            <button type="submit" class="btn {{ classe_botao|default:'btn-vistore' }}"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ rotulo_botao|default:"Salvar" }}</button>
+            <a href="{{ view.success_url }}" class="btn btn-link">Voltar</a>
           </div>
         </form>
       </div>

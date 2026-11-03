@@ -84,11 +84,14 @@ class AcaoOrdemView(OrdensDoUsuarioMixin, SingleObjectMixin, FormView):
     """Base das ações sobre uma OS. A regra fica no services; a view só chama."""
 
     model = OrdemServico
-    template_name = "crud/form.html"
+    template_name = "ordens/acao_form.html"
+    context_object_name = "ordem"
     form_class = forms.ConfirmarForm
     acao = ""
     titulo = ""
     rotulo_botao = "Confirmar"
+    classe_botao = "btn-vistore"
+    aviso = ""
     mensagem_sucesso = ""
 
     def dispatch(self, request, *args, **kwargs):
@@ -96,7 +99,11 @@ class AcaoOrdemView(OrdensDoUsuarioMixin, SingleObjectMixin, FormView):
             return self.handle_no_permission()
         self.object = self.get_object()
         if not services.acoes_disponiveis(request.user, self.object)[self.acao]:
-            messages.error(request, "Esta ação não está disponível para esta OS.")
+            messages.error(
+                request,
+                f"Esta ação não está disponível para a OS #{self.object.pk}, "
+                f"que está “{self.object.get_status_display()}”.",
+            )
             return redirect(self.success_url)
         return super().dispatch(request, *args, **kwargs)
 
@@ -105,7 +112,10 @@ class AcaoOrdemView(OrdensDoUsuarioMixin, SingleObjectMixin, FormView):
         return reverse("ordens:detalhe", args=[self.object.pk])
 
     def get_context_data(self, **kwargs):
-        kwargs.update(titulo=f"{self.titulo} — OS #{self.object.pk}", rotulo_botao=self.rotulo_botao)
+        kwargs.update(
+            titulo=f"{self.titulo} — OS #{self.object.pk}", rotulo_botao=self.rotulo_botao,
+            classe_botao=self.classe_botao, aviso=self.aviso,
+        )
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
@@ -114,7 +124,7 @@ class AcaoOrdemView(OrdensDoUsuarioMixin, SingleObjectMixin, FormView):
         except ValidationError as erro:
             form.add_error(None, erro)
             return self.form_invalid(form)
-        messages.success(self.request, self.mensagem_sucesso)
+        messages.success(self.request, self.mensagem_sucesso.format(ordem=self.object))
         return redirect(self.success_url)
 
     def executar(self, dados):
@@ -126,7 +136,7 @@ class ClassificarView(AcaoOrdemView):
     form_class = forms.ClassificarForm
     titulo = "Classificar chamado"
     rotulo_botao = "Classificar"
-    mensagem_sucesso = "Chamado classificado. Agora atribua um técnico."
+    mensagem_sucesso = "OS #{ordem.pk} classificada. Agora atribua um técnico."
 
     def executar(self, dados):
         services.classificar(self.object, self.request.user, dados["tipo_servico"], dados["riscos"])
@@ -137,7 +147,7 @@ class AtribuirView(AcaoOrdemView):
     form_class = forms.AtribuirForm
     titulo = "Atribuir técnico"
     rotulo_botao = "Atribuir"
-    mensagem_sucesso = "Técnico atribuído."
+    mensagem_sucesso = "{ordem.tecnico.nome} foi atribuído(a) à OS #{ordem.pk}."
 
     def get_form_kwargs(self):
         return {**super().get_form_kwargs(), "ordem": self.object}
@@ -150,7 +160,7 @@ class IniciarView(AcaoOrdemView):
     acao = "iniciar"
     titulo = "Iniciar serviço"
     rotulo_botao = "Iniciar"
-    mensagem_sucesso = "Serviço iniciado."
+    mensagem_sucesso = "Serviço da OS #{ordem.pk} iniciado."
 
     def executar(self, dados):
         services.iniciar(self.object, self.request.user)
@@ -159,8 +169,10 @@ class IniciarView(AcaoOrdemView):
 class ConcluirView(AcaoOrdemView):
     acao = "concluir"
     titulo = "Concluir serviço"
-    rotulo_botao = "Concluir"
-    mensagem_sucesso = "Serviço concluído."
+    rotulo_botao = "Concluir serviço"
+    classe_botao = "btn-success"
+    aviso = "Depois de concluída, a OS não pode voltar atrás. Confirme só se o serviço terminou."
+    mensagem_sucesso = "OS #{ordem.pk} concluída. O solicitante já pode avaliar."
 
     def executar(self, dados):
         services.concluir(self.object, self.request.user)
@@ -170,8 +182,9 @@ class CancelarView(AcaoOrdemView):
     acao = "cancelar"
     form_class = forms.CancelarForm
     titulo = "Cancelar OS"
-    rotulo_botao = "Cancelar OS"
-    mensagem_sucesso = "OS cancelada."
+    rotulo_botao = "Confirmar cancelamento"
+    classe_botao = "btn-danger"
+    mensagem_sucesso = "OS #{ordem.pk} cancelada."
 
     def executar(self, dados):
         services.cancelar(self.object, self.request.user, dados["justificativa"])

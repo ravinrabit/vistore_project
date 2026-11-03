@@ -61,6 +61,19 @@ h1, .h3 { font-weight: 700; color: var(--vt-azul-escuro); }
   --bs-btn-hover-color: #1b1f24; --bs-btn-hover-bg: var(--vt-laranja-hover); --bs-btn-hover-border-color: var(--vt-laranja-hover);
   --bs-btn-active-color: #1b1f24; --bs-btn-active-bg: var(--vt-laranja-hover);
 }
+.btn-outline-danger {
+  --bs-btn-color: var(--vt-perigo); --bs-btn-border-color: var(--vt-perigo);
+  --bs-btn-hover-bg: var(--vt-perigo); --bs-btn-hover-border-color: var(--vt-perigo);
+  --bs-btn-active-bg: var(--vt-perigo); --bs-btn-active-border-color: var(--vt-perigo);
+}
+.btn-danger {
+  --bs-btn-bg: var(--vt-perigo); --bs-btn-border-color: var(--vt-perigo);
+  --bs-btn-hover-bg: #8f1c13; --bs-btn-hover-border-color: #8f1c13;
+}
+.btn-success {
+  --bs-btn-bg: var(--vt-sucesso); --bs-btn-border-color: var(--vt-sucesso);
+  --bs-btn-hover-bg: #16522a; --bs-btn-hover-border-color: #16522a;
+}
 :focus-visible { outline: 3px solid var(--vt-azul); outline-offset: 2px; }
 
 /* Navbar com a "fita" laranja de segurança */

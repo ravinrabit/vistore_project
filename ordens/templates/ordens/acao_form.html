@@ -1,0 +1,16 @@
+{% extends "crud/form.html" %}
+{% load ordens_tags %}
+{# Formulário das ações sobre a OS: mostra um resumo da OS antes dos campos #}
+{% block antes_do_form %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      <span class="badge badge-os badge-os--{{ ordem.prioridade|cor_prioridade }}">{{ ordem.get_prioridade_display }}</span>
+      <span class="badge badge-os badge-os--{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span>
+    </div>
+    <p class="mb-1">{{ ordem.descricao|truncatechars:200 }}</p>
+    <div class="small text-body-secondary">{{ ordem.local }}{% if ordem.equipamento %} · {{ ordem.equipamento }}{% endif %}</div>
+  </div>
+</div>
+{% if aviso %}<div class="alert alert-warning" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ aviso }}</div>{% endif %}
+{% endblock %}

@@ -33,3 +33,13 @@ class EstiloBootstrapMixin:
                 widget.attrs.setdefault("class", "form-select")
             else:
                 widget.attrs.setdefault("class", "form-control")
+
+    def full_clean(self):
+        super().full_clean()
+        # Marca os campos com erro para o Bootstrap e para leitores de tela
+        for nome in self.errors:
+            if nome in self.fields:
+                attrs = self.fields[nome].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} is-invalid".strip()
+                attrs["aria-invalid"] = "true"
+                attrs["aria-describedby"] = f"{self[nome].auto_id}-erro"

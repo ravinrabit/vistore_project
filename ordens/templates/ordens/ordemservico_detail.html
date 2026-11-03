@@ -1,21 +1,24 @@
 {% extends "base.html" %}
-{% load ordens_tags %}
+{% load humanize ordens_tags %}
 {% block titulo %}OS #{{ ordem.pk }}{% endblock %}
 {% block conteudo %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
   <div>
-    <a href="{% url 'ordens:lista' %}" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Voltar para a lista</a>
+    <a href="{% url 'ordens:lista' %}" class="small text-decoration-none"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para a lista</a>
     <h1 class="h3 m-0">OS #{{ ordem.pk }}</h1>
   </div>
   <div class="d-flex gap-2">
-    <span class="badge badge-os fs-6 badge-os--{{ ordem.prioridade|cor_prioridade }}">{{ ordem.get_prioridade_display }}</span>
+    <span class="badge badge-os fs-6 badge-os--{{ ordem.prioridade|cor_prioridade }}">
+      {% if ordem.prioridade == "URGENTE" %}<i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>{% endif %}
+      {{ ordem.get_prioridade_display }}
+    </span>
     <span class="badge badge-os fs-6 badge-os--{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span>
   </div>
 </div>
 
 <div class="row g-3">
   <div class="col-lg-8">
-    <div class="card shadow-sm border-0 mb-3">
+    <div class="card mb-3">
       <div class="card-body">
         <h2 class="h6 text-body-secondary">Descrição</h2>
         <p class="mb-3">{{ ordem.descricao|linebreaksbr }}</p>
@@ -26,13 +29,17 @@
           <dt class="col-sm-4">Tipo de serviço</dt><dd class="col-sm-8">{{ ordem.tipo_servico|default:"A classificar" }}</dd>
           <dt class="col-sm-4">Riscos identificados</dt><dd class="col-sm-8">{{ ordem.riscos|default:"—"|linebreaksbr }}</dd>
           <dt class="col-sm-4">Técnico</dt><dd class="col-sm-8">{{ ordem.tecnico.nome|default:"Não atribuído" }}</dd>
+          <dt class="col-sm-4">Aberta</dt><dd class="col-sm-8">{{ ordem.aberta_em|date:"d/m/Y H:i" }} <span class="text-body-secondary small">({{ ordem.aberta_em|naturaltime }})</span></dd>
+          {% if ordem.iniciada_em %}<dt class="col-sm-4">Iniciada</dt><dd class="col-sm-8">{{ ordem.iniciada_em|date:"d/m/Y H:i" }}</dd>{% endif %}
+          {% if ordem.concluida_em %}<dt class="col-sm-4">Concluída</dt><dd class="col-sm-8">{{ ordem.concluida_em|date:"d/m/Y H:i" }}</dd>{% endif %}
           {% if ordem.justificativa_cancelamento %}
             <dt class="col-sm-4">Motivo do cancelamento</dt><dd class="col-sm-8">{{ ordem.justificativa_cancelamento|linebreaksbr }}</dd>
           {% endif %}
           {% if ordem.avaliacao %}
             <dt class="col-sm-4">Avaliação</dt>
-            <dd class="col-sm-8 text-warning" title="{{ ordem.avaliacao }} de 5">
-              {% for n in "12345" %}<i class="bi bi-star{% if forloop.counter <= ordem.avaliacao %}-fill{% endif %}"></i>{% endfor %}
+            <dd class="col-sm-8 estrelas">
+              {% for n in "12345" %}<i class="bi bi-star{% if forloop.counter <= ordem.avaliacao %}-fill{% endif %}" aria-hidden="true"></i>{% endfor %}
+              <span class="visually-hidden">{{ ordem.avaliacao }} de 5</span>
             </dd>
           {% endif %}
         </dl>
@@ -40,38 +47,41 @@
     </div>
 
     {% if True in acoes.values %}
-      <div class="d-flex flex-wrap gap-2">
-        {% if acoes.classificar %}<a href="{% url 'ordens:classificar' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-tags"></i> Classificar</a>{% endif %}
-        {% if acoes.atribuir %}<a href="{% url 'ordens:atribuir' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-person-gear"></i> Atribuir técnico</a>{% endif %}
-        {% if acoes.iniciar %}
-          <form method="post" action="{% url 'ordens:iniciar' ordem.pk %}">{% csrf_token %}
-            <button class="btn btn-vistore"><i class="bi bi-play-fill"></i> Iniciar serviço</button>
-          </form>
-        {% endif %}
-        {% if acoes.concluir %}
-          <form method="post" action="{% url 'ordens:concluir' ordem.pk %}">{% csrf_token %}
-            <button class="btn btn-success"><i class="bi bi-check2-circle"></i> Concluir serviço</button>
-          </form>
-        {% endif %}
-        {% if acoes.avaliar %}<a href="{% url 'ordens:avaliar' ordem.pk %}" class="btn btn-warning"><i class="bi bi-star"></i> Avaliar serviço</a>{% endif %}
-        {% if acoes.cancelar %}<a href="{% url 'ordens:cancelar' ordem.pk %}" class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar OS</a>{% endif %}
+      <div class="card">
+        <div class="card-header">Ações</div>
+        <div class="card-body d-flex flex-wrap gap-2">
+          {% if acoes.classificar %}<a href="{% url 'ordens:classificar' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-tags" aria-hidden="true"></i> Classificar</a>{% endif %}
+          {% if acoes.atribuir %}<a href="{% url 'ordens:atribuir' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-person-gear" aria-hidden="true"></i> Atribuir técnico</a>{% endif %}
+          {% if acoes.iniciar %}
+            <form method="post" action="{% url 'ordens:iniciar' ordem.pk %}" class="m-0">{% csrf_token %}
+              <button class="btn btn-vistore"><i class="bi bi-play-fill" aria-hidden="true"></i> Iniciar serviço</button>
+            </form>
+          {% endif %}
+          {# Concluir não tem volta: passa por uma tela de confirmação #}
+          {% if acoes.concluir %}<a href="{% url 'ordens:concluir' ordem.pk %}" class="btn btn-success"><i class="bi bi-check2-circle" aria-hidden="true"></i> Concluir serviço</a>{% endif %}
+          {% if acoes.avaliar %}<a href="{% url 'ordens:avaliar' ordem.pk %}" class="btn btn-destaque"><i class="bi bi-star" aria-hidden="true"></i> Avaliar serviço</a>{% endif %}
+          {% if acoes.cancelar %}<a href="{% url 'ordens:cancelar' ordem.pk %}" class="btn btn-outline-danger ms-sm-auto"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancelar OS</a>{% endif %}
+        </div>
       </div>
     {% endif %}
   </div>
 
   <div class="col-lg-4">
-    <div class="card shadow-sm border-0">
-      <div class="card-header bg-white fw-semibold"><i class="bi bi-clock-history"></i> Linha do tempo</div>
-      <ul class="list-group list-group-flush">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-clock-history" aria-hidden="true"></i> Linha do tempo</div>
+      <ol class="linha-tempo">
         {% for item in historico %}
-          <li class="list-group-item">
+          <li class="linha-tempo__item">
+            <span class="linha-tempo__ponto" aria-hidden="true"></span>
             <span class="badge badge-os badge-os--{{ item.status_novo|cor_status }}">{{ item.get_status_novo_display }}</span>
             <div class="small text-body-secondary mt-1">
-              {{ item.data_hora|date:"d/m/Y H:i" }} · {{ item.usuario.nome }}
+              <time datetime="{{ item.data_hora|date:'c' }}">{{ item.data_hora|date:"d/m/Y H:i" }}</time> · {{ item.usuario.nome }}
             </div>
           </li>
+        {% empty %}
+          <li class="linha-tempo__item text-body-secondary small">Sem registros.</li>
         {% endfor %}
-      </ul>
+      </ol>
     </div>
   </div>
 </div>
