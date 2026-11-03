@@ -7,5 +7,8 @@
   {% include "partials/card_numero.html" with titulo="Chamados em andamento" valor=minhas_abertas icone="hourglass-split" cor="warning" %}
   {% include "partials/card_numero.html" with titulo="Chamados concluídos" valor=minhas_concluidas icone="check-circle" cor="success" %}
 </div>
-<p class="text-body-secondary small mt-4">A abertura de chamados será liberada na próxima etapa do projeto.</p>
+<div class="d-flex flex-wrap gap-2 mt-4">
+  <a href="{% url 'ordens:nova' %}" class="btn btn-vistore"><i class="bi bi-plus-lg"></i> Abrir chamado</a>
+  <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul"></i> Meus chamados</a>
+</div>
 {% endblock %}

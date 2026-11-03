@@ -9,5 +9,9 @@
   {% include "partials/card_numero.html" with titulo="Locais" valor=total_locais icone="door-open" %}
   {% include "partials/card_numero.html" with titulo="Equipamentos" valor=total_equipamentos icone="tools" %}
 </div>
+<div class="d-flex flex-wrap gap-2 mt-4">
+  <a href="{% url 'ordens:lista' %}?status=ABERTO" class="btn btn-vistore"><i class="bi bi-inbox"></i> Chamados para classificar</a>
+  <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul"></i> Todas as ordens</a>
+</div>
 {% include "contas/painel/_atalhos_cadastro.html" %}
 {% endblock %}

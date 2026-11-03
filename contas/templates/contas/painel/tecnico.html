@@ -3,9 +3,10 @@
 {% block conteudo %}
 <h1 class="h3 mb-1">Olá, {{ user.get_short_name }}</h1>
 <p class="text-body-secondary">Seus serviços e treinamentos.</p>
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
   {% include "partials/card_numero.html" with titulo="Serviços atribuídos" valor=ordens_atribuidas icone="wrench-adjustable" %}
 </div>
+<a href="{% url 'ordens:lista' %}" class="btn btn-vistore mb-4"><i class="bi bi-list-ul"></i> Ver meus serviços</a>
 
 <div class="card shadow-sm border-0">
   <div class="card-header bg-white fw-semibold">Meus treinamentos</div>

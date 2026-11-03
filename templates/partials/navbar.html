@@ -15,6 +15,10 @@
           <a class="nav-link {% if request.resolver_match.url_name == 'painel' %}active{% endif %}"
              href="{% url 'contas:painel' %}"><i class="bi bi-speedometer2"></i> Painel</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.app_name == 'ordens' %}active{% endif %}" href="{% url 'ordens:lista' %}">
+            <i class="bi bi-clipboard-check"></i> {% if user.eh_solicitante %}Meus chamados{% elif user.eh_tecnico %}Meus serviços{% else %}Ordens de serviço{% endif %}</a>
+        </li>
         {% if user.eh_admin or user.eh_gestor %}
           {% with rota=request.resolver_match.url_name %}
           <li class="nav-item">

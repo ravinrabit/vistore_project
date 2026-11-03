@@ -117,6 +117,8 @@ seguranca/   Treinamento, TreinamentoTecnico (valido_em(data), calcula data_vali
              EPI, TipoServico (eletrico, trabalho_em_altura, M2M treinamentos/EPIs), Incidente
 ordens/      OrdemServico, HistoricoStatus, ChecklistSeguranca (1:1), Preventiva
              Choices: Status, Prioridade
+             services.py (TRANSICOES, mudar_status, acoes_disponiveis, ordenar_por_prioridade)
+             views.py (lista/detalhe por perfil, AcaoOrdemView base das ações), templatetags/ordens_tags.py
 templates/   base.html, partials/ (navbar por perfil, mensagens, paginação, card_numero,
              cabecalho_lista), crud/ (form.html e confirmar_exclusao.html genéricos),
              registration/login.html
@@ -143,12 +145,12 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 | --- | --- | --- |
 | 1 | Documentação (requisitos, perfis, regras, modelo de dados, fluxograma) | feito |
 | 2 | Base: Django + MySQL, login e perfis, unidades/locais/equipamentos, todos os models, `popular_dados`, 21 testes | **feito** |
-| 3 | Ordens de serviço | **próxima** |
-| 4 | Segurança | a fazer |
+| 3 | Ordens de serviço: `services.py`, telas por perfil, linha do tempo, 34 testes (55 no total) | **feito** |
+| 4 | Segurança | **próxima** |
 | 5 | Extras | a fazer |
 | 6 | Testes, ajustes visuais, deploy, manual, apresentação final | a fazer |
 
-### Etapa 3: ordens de serviço (próxima)
+### Etapa 3: ordens de serviço (feita)
 - Solicitante abre chamado (local, equipamento opcional, descrição, prioridade) e vê os próprios.
 - Gestor classifica (tipo de serviço, riscos) e atribui o técnico.
 - `ordens/services.py`: tabela de transições permitidas (RN05) e uma função única de mudança de
@@ -159,7 +161,9 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 - Telas: lista por perfil, detalhe da OS com linha do tempo do histórico.
 - Testes da RN05/RN06/RN07.
 
-### Etapa 4: segurança
+### Etapa 4: segurança (próxima)
+- Pontos de entrada já marcados no código: `services.atribuir` (RN01/RN04) e `services.iniciar`
+  (RN02). O `AtribuirForm` hoje lista todos os técnicos ativos da unidade.
 - RN01/RN04: na atribuição, validar todas as NRs exigidas (M2M + NR-10 se `eletrico`, NR-35 se
   `trabalho_em_altura`) com `TreinamentoTecnico.valido_em(data)`. O select de técnicos mostra só
   os aptos.
