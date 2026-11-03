@@ -5,8 +5,8 @@
 {% include "partials/cabecalho_lista.html" with titulo="Equipamentos" url_novo=url_novo %}
 <div class="card shadow-sm border-0">
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="table-light"><tr><th>Nome</th><th>Patrimônio</th><th>Local</th><th class="text-end">Ações</th></tr></thead>
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Nome</th><th>Patrimônio</th><th>Local</th><th class="text-end">Ações</th></tr></thead>
       <tbody>
         {% for equipamento in object_list %}
           <tr>
@@ -14,12 +14,12 @@
             <td><code>{{ equipamento.patrimonio }}</code></td>
             <td class="small">{{ equipamento.local }}</td>
             <td class="text-end text-nowrap">
-              <a href="{% url 'estrutura:equipamento_editar' equipamento.pk %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
-              <a href="{% url 'estrutura:equipamento_excluir' equipamento.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></a>
+              <a href="{% url 'estrutura:equipamento_editar' equipamento.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <a href="{% url 'estrutura:equipamento_excluir' equipamento.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="4" class="text-center text-body-secondary py-4">Nenhum equipamento encontrado.</td></tr>
+          <tr><td colspan="4" class="estado-vazio"><i class="bi bi-inbox" aria-hidden="true"></i>Nenhum equipamento encontrado.{% if q %} Tente outra busca.{% endif %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

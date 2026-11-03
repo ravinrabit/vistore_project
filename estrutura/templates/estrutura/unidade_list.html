@@ -5,25 +5,25 @@
 {% if user.eh_admin %}
   {% include "partials/cabecalho_lista.html" with titulo="Unidades" url_novo=url_nova %}
 {% else %}
-  {% include "partials/cabecalho_lista.html" with titulo="Minha unidade" %}
+  {% include "partials/cabecalho_lista.html" with titulo="Minha unidade" sem_busca=True %}
 {% endif %}
 <div class="card shadow-sm border-0">
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="table-light"><tr><th>Nome</th><th>Endereço</th><th>Situação</th><th class="text-end">Ações</th></tr></thead>
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Nome</th><th>Endereço</th><th>Situação</th><th class="text-end">Ações</th></tr></thead>
       <tbody>
         {% for unidade in object_list %}
           <tr>
             <td class="fw-semibold">{{ unidade.nome }}</td>
             <td>{{ unidade.endereco|default:"—" }}</td>
-            <td>{% if unidade.ativa %}<span class="badge text-bg-success">Ativa</span>{% else %}<span class="badge text-bg-secondary">Inativa</span>{% endif %}</td>
+            <td>{% if unidade.ativa %}<span class="badge badge-os badge-os--concluido">Ativa</span>{% else %}<span class="badge badge-os badge-os--aberto">Inativa</span>{% endif %}</td>
             <td class="text-end text-nowrap">
-              <a href="{% url 'estrutura:unidade_editar' unidade.pk %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
-              {% if user.eh_admin %}<a href="{% url 'estrutura:unidade_excluir' unidade.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></a>{% endif %}
+              <a href="{% url 'estrutura:unidade_editar' unidade.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              {% if user.eh_admin %}<a href="{% url 'estrutura:unidade_excluir' unidade.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>{% endif %}
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="4" class="text-center text-body-secondary py-4">Nenhuma unidade encontrada.</td></tr>
+          <tr><td colspan="4" class="estado-vazio"><i class="bi bi-inbox" aria-hidden="true"></i>Nenhuma unidade encontrada.{% if q %} Tente outra busca.{% endif %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

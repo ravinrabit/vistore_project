@@ -1,10 +1,13 @@
-{# Título + busca + botão "novo" das listagens. Parâmetros: titulo, url_novo #}
+{# Título + busca + botão "novo" das listagens. Parâmetros: titulo, url_novo, sem_busca #}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
   <h1 class="h3 m-0">{{ titulo }}</h1>
-  <div class="d-flex gap-2">
-    <form method="get" class="d-flex" role="search">
-      <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Buscar..." aria-label="Buscar">
-    </form>
-    {% if url_novo %}<a href="{{ url_novo }}" class="btn btn-vistore text-nowrap"><i class="bi bi-plus-lg"></i> Novo</a>{% endif %}
+  <div class="d-flex flex-wrap gap-2">
+    {% if not sem_busca %}
+      <form method="get" class="input-group w-auto flex-grow-1" role="search">
+        <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Buscar..." aria-label="Buscar">
+        <button class="btn btn-outline-primary" type="submit" aria-label="Buscar"><i class="bi bi-search" aria-hidden="true"></i></button>
+      </form>
+    {% endif %}
+    {% if url_novo %}<a href="{{ url_novo }}" class="btn btn-vistore text-nowrap"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo</a>{% endif %}
   </div>
 </div>

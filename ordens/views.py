@@ -44,7 +44,10 @@ class OrdemListView(OrdensDoUsuarioMixin, BuscaMixin, ListView):
 
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
-        contexto.update(status_escolhido=self.request.GET.get("status", ""), opcoes_status=Status.choices)
+        status = self.request.GET.get("status", "")
+        contexto.update(
+            status_escolhido=status if status in Status.values else "", opcoes_status=Status.choices
+        )
         return contexto
 
 
