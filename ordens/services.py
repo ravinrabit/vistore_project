@@ -4,7 +4,7 @@ from django.db.models import Case, IntegerField, Value, When
 from django.utils import timezone
 
 from contas.models import Perfil
-from seguranca.services import treinamentos_pendentes
+from seguranca.services import pode_registrar_incidente, treinamentos_pendentes
 
 from .models import ChecklistSeguranca, HistoricoStatus, OrdemServico, Prioridade, Status
 
@@ -139,7 +139,21 @@ def iniciar(ordem, usuario):
 def concluir(ordem, usuario):
     if usuario.pk != ordem.tecnico_id:
         raise PermissionDenied("Só o técnico atribuído conclui o serviço.")
+    if ordem.requer_revisao_seguranca:
+        raise ValidationError(
+            "Esta OS teve incidente com lesão ou afastamento e aguarda a revisão do gestor (RN08)."
+        )
     return mudar_status(ordem, Status.CONCLUIDO, usuario)
+
+
+def concluir_revisao(ordem, usuario):
+    if not pode_gerir(usuario, ordem):
+        raise PermissionDenied("Só o gestor da unidade conclui a revisão de segurança.")
+    if not ordem.requer_revisao_seguranca:
+        raise ValidationError("Esta OS não está em revisão de segurança.")
+    ordem.requer_revisao_seguranca = False
+    ordem.save(update_fields=["requer_revisao_seguranca"])
+    return ordem
 
 
 def pode_cancelar(usuario, ordem):
@@ -156,7 +170,11 @@ def acoes_disponiveis(usuario, ordem):
         "atribuir": gestor and ordem.status == Status.CLASSIFICADO,
         "checklist": eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO and not confirmado,
         "iniciar": eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO and confirmado,
-        "concluir": eh_tecnico_da_os and ordem.status == Status.EM_EXECUCAO,
+        "concluir": (
+            eh_tecnico_da_os and ordem.status == Status.EM_EXECUCAO and not ordem.requer_revisao_seguranca
+        ),
+        "incidente": pode_registrar_incidente(usuario, ordem),
+        "revisar": gestor and ordem.requer_revisao_seguranca,
         "cancelar": pode_cancelar(usuario, ordem) and pode_mudar_para(ordem, Status.CANCELADO),
         "avaliar": (
             usuario.pk == ordem.solicitante_id

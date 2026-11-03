@@ -8,6 +8,8 @@ from django.views.generic.detail import SingleObjectMixin
 
 from contas.mixins import PerfilRequeridoMixin
 from estrutura.views import BuscaMixin, UsuarioNoFormMixin
+from seguranca import services as seguranca
+from seguranca.forms import IncidenteForm
 
 from . import forms, services
 from .models import OrdemServico, Status
@@ -59,6 +61,7 @@ class OrdemDetailView(OrdensDoUsuarioMixin, DetailView):
         contexto = super().get_context_data(**kwargs)
         contexto["historico"] = self.object.historico.select_related("usuario")
         contexto["acoes"] = services.acoes_disponiveis(self.request.user, self.object)
+        contexto["incidentes"] = self.object.incidentes.select_related("registrado_por")
         return contexto
 
 
@@ -216,3 +219,31 @@ class AvaliarView(AcaoOrdemView):
 
     def executar(self, dados):
         services.avaliar(self.object, self.request.user, dados["nota"])
+
+
+class IncidenteView(AcaoOrdemView):
+    acao = "incidente"
+    form_class = IncidenteForm
+    titulo = "Registrar incidente"
+    rotulo_botao = "Registrar incidente"
+    classe_botao = "btn-danger"
+    mensagem_sucesso = "Incidente registrado na OS #{ordem.pk}."
+
+    def executar(self, dados):
+        incidente = seguranca.registrar_incidente(self.object, self.request.user, **dados)
+        if incidente.houve_lesao or incidente.houve_afastamento:
+            messages.warning(
+                self.request,
+                "A OS entrou em revisão de segurança e só pode ser concluída depois da liberação do gestor.",
+            )
+
+
+class RevisaoView(AcaoOrdemView):
+    acao = "revisar"
+    titulo = "Concluir revisão de segurança"
+    rotulo_botao = "Liberar a OS"
+    aviso = "Confirme que o incidente foi analisado e que o serviço pode seguir com segurança."
+    mensagem_sucesso = "Revisão de segurança da OS #{ordem.pk} concluída."
+
+    def executar(self, dados):
+        services.concluir_revisao(self.object, self.request.user)

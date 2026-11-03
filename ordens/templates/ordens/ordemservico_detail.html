@@ -16,6 +16,13 @@
   </div>
 </div>
 
+{% if ordem.requer_revisao_seguranca %}
+  <div class="alert alerta-seguranca d-flex gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+    <div><strong>OS em revisão de segurança.</strong> Houve incidente com lesão ou afastamento; o serviço só pode ser concluído depois da liberação do gestor.</div>
+  </div>
+{% endif %}
+
 <div class="row g-3">
   <div class="col-lg-8">
     <div class="card mb-3">
@@ -64,9 +71,30 @@
           {% endif %}
           {# Concluir não tem volta: passa por uma tela de confirmação #}
           {% if acoes.concluir %}<a href="{% url 'ordens:concluir' ordem.pk %}" class="btn btn-success"><i class="bi bi-check2-circle" aria-hidden="true"></i> Concluir serviço</a>{% endif %}
+          {% if acoes.revisar %}<a href="{% url 'ordens:revisao' ordem.pk %}" class="btn btn-destaque"><i class="bi bi-shield-check" aria-hidden="true"></i> Concluir revisão de segurança</a>{% endif %}
+          {% if acoes.incidente %}<a href="{% url 'ordens:incidente' ordem.pk %}" class="btn btn-outline-danger"><i class="bi bi-bandaid" aria-hidden="true"></i> Registrar incidente</a>{% endif %}
           {% if acoes.avaliar %}<a href="{% url 'ordens:avaliar' ordem.pk %}" class="btn btn-destaque"><i class="bi bi-star" aria-hidden="true"></i> Avaliar serviço</a>{% endif %}
           {% if acoes.cancelar %}<a href="{% url 'ordens:cancelar' ordem.pk %}" class="btn btn-outline-danger ms-sm-auto"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancelar OS</a>{% endif %}
         </div>
+      </div>
+    {% endif %}
+
+    {% if incidentes %}
+      <div class="card mt-3">
+        <div class="card-header"><i class="bi bi-bandaid" aria-hidden="true"></i> Incidentes</div>
+        <ul class="list-group list-group-flush">
+          {% for incidente in incidentes %}
+            <li class="list-group-item">
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="badge badge-os {% if incidente.gravidade == 'GRAVE' %}badge-os--urgente{% elif incidente.gravidade == 'MODERADA' %}badge-os--alta{% else %}badge-os--media{% endif %}">{{ incidente.get_gravidade_display }}</span>
+                {% if incidente.houve_lesao %}<span class="badge badge-os badge-os--urgente">Com lesão</span>{% endif %}
+                {% if incidente.houve_afastamento %}<span class="badge badge-os badge-os--urgente">Com afastamento</span>{% endif %}
+                <small class="text-body-secondary ms-auto">{{ incidente.data_hora|date:"d/m/Y H:i" }} · {{ incidente.registrado_por.nome }}</small>
+              </div>
+              <p class="mb-0 mt-2">{{ incidente.descricao|linebreaksbr }}</p>
+            </li>
+          {% endfor %}
+        </ul>
       </div>
     {% endif %}
   </div>
