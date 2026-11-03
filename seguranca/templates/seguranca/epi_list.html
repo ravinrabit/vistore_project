@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}EPIs{% endblock %}
+{% block conteudo %}
+{% url 'seguranca:epi_novo' as url_novo %}
+{% include "partials/cabecalho_lista.html" with titulo="EPIs" url_novo=url_novo %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Nome</th><th>Nº do CA</th><th class="d-none d-md-table-cell">Descrição</th><th class="text-end">Ações</th></tr></thead>
+      <tbody>
+        {% for epi in object_list %}
+          <tr>
+            <td class="fw-semibold">{{ epi.nome }}</td>
+            <td><code>{{ epi.numero_ca }}</code></td>
+            <td class="d-none d-md-table-cell small">{{ epi.descricao|default:"—" }}</td>
+            <td class="text-end text-nowrap">
+              <a href="{% url 'seguranca:epi_editar' epi.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <a href="{% url 'seguranca:epi_excluir' epi.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="estado-vazio"><i class="bi bi-inbox" aria-hidden="true"></i>Nenhum EPI encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacao.html" %}
+{% endblock %}

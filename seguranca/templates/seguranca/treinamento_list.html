@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Treinamentos{% endblock %}
+{% block conteudo %}
+{% url 'seguranca:treinamento_novo' as url_novo %}
+{% include "partials/cabecalho_lista.html" with titulo="Treinamentos (NRs)" url_novo=url_novo %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Código</th><th>Nome</th><th>Validade</th><th class="text-end">Ações</th></tr></thead>
+      <tbody>
+        {% for treinamento in object_list %}
+          <tr>
+            <td class="fw-semibold">{{ treinamento.codigo }}</td>
+            <td>{{ treinamento.nome }}</td>
+            <td>{{ treinamento.validade_meses }} meses</td>
+            <td class="text-end text-nowrap">
+              <a href="{% url 'seguranca:treinamento_editar' treinamento.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <a href="{% url 'seguranca:treinamento_excluir' treinamento.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="estado-vazio"><i class="bi bi-inbox" aria-hidden="true"></i>Nenhum treinamento encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacao.html" %}
+{% endblock %}

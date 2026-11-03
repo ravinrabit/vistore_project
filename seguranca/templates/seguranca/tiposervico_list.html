@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}Tipos de serviço{% endblock %}
+{% block conteudo %}
+{% url 'seguranca:tipo_novo' as url_tipo_novo %}
+{% if user.eh_admin %}
+  {% include "partials/cabecalho_lista.html" with titulo="Tipos de serviço" url_novo=url_tipo_novo %}
+{% else %}
+  {% include "partials/cabecalho_lista.html" with titulo="Tipos de serviço" %}
+{% endif %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Nome</th><th>Riscos</th><th>Treinamentos</th><th class="d-none d-md-table-cell">EPIs exigidos</th>{% if user.eh_admin %}<th class="text-end">Ações</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for tipo in object_list %}
+          <tr>
+            <td class="fw-semibold">{{ tipo.nome }}</td>
+            <td>
+              {% if tipo.eletrico %}<span class="badge badge-os badge-os--alta"><i class="bi bi-lightning-charge" aria-hidden="true"></i> Elétrico</span>{% endif %}
+              {% if tipo.trabalho_em_altura %}<span class="badge badge-os badge-os--alta"><i class="bi bi-ladder" aria-hidden="true"></i> Altura</span>{% endif %}
+              {% if not tipo.eletrico and not tipo.trabalho_em_altura %}—{% endif %}
+            </td>
+            <td class="small">
+              {% if tipo.eletrico %}NR-10 {% endif %}{% if tipo.trabalho_em_altura %}NR-35 {% endif %}
+              {% for t in tipo.treinamentos_exigidos.all %}{% if t.codigo != "NR-10" and t.codigo != "NR-35" %}{{ t.codigo }} {% endif %}{% endfor %}
+            </td>
+            <td class="d-none d-md-table-cell small">{{ tipo.epis_exigidos.all|join:", "|default:"—" }}</td>
+            {% if user.eh_admin %}
+              <td class="text-end text-nowrap">
+                <a href="{% url 'seguranca:tipo_editar' tipo.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                <a href="{% url 'seguranca:tipo_excluir' tipo.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="estado-vazio"><i class="bi bi-inbox" aria-hidden="true"></i>Nenhum tipo de serviço encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacao.html" %}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Treinamentos dos técnicos{% endblock %}
+{% block conteudo %}
+{% url 'seguranca:realizacao_nova' as url_novo %}
+{% include "partials/cabecalho_lista.html" with titulo="Treinamentos dos técnicos" url_novo=url_novo %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 tabela-vistore">
+      <thead><tr><th>Técnico</th><th>Treinamento</th><th>Realizado</th><th>Situação</th><th class="text-end">Ações</th></tr></thead>
+      <tbody>
+        {% for item in object_list %}
+          <tr>
+            <td class="fw-semibold">{{ item.tecnico.nome }}{% if user.eh_admin %}<span class="small text-body-secondary d-block">{{ item.tecnico.unidade }}</span>{% endif %}</td>
+            <td>{{ item.treinamento.codigo }}</td>
+            <td>{{ item.data_realizacao|date:"d/m/Y" }}</td>
+            <td>
+              {% if item.data_validade < hoje %}
+                <span class="badge badge-os badge-os--urgente">Vencido em {{ item.data_validade|date:"d/m/Y" }}</span>
+              {% elif item.data_validade <= limite_alerta %}
+                <span class="badge badge-os badge-os--execucao">Vence em {{ item.data_validade|date:"d/m/Y" }}</span>
+              {% else %}
+                <span class="badge badge-os badge-os--concluido">Válido até {{ item.data_validade|date:"d/m/Y" }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end text-nowrap">
+              <a href="{% url 'seguranca:realizacao_editar' item.pk %}" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <a href="{% url 'seguranca:realizacao_excluir' item.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir"><i class="bi bi-trash" aria-hidden="true"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="estado-vazio"><i class="bi bi-inbox" aria-hidden="true"></i>Nenhum treinamento registrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include "partials/paginacao.html" %}
+{% endblock %}
