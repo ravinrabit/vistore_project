@@ -38,6 +38,25 @@
         </dl>
       </div>
     </div>
+
+    {% if True in acoes.values %}
+      <div class="d-flex flex-wrap gap-2">
+        {% if acoes.classificar %}<a href="{% url 'ordens:classificar' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-tags"></i> Classificar</a>{% endif %}
+        {% if acoes.atribuir %}<a href="{% url 'ordens:atribuir' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-person-gear"></i> Atribuir técnico</a>{% endif %}
+        {% if acoes.iniciar %}
+          <form method="post" action="{% url 'ordens:iniciar' ordem.pk %}">{% csrf_token %}
+            <button class="btn btn-vistore"><i class="bi bi-play-fill"></i> Iniciar serviço</button>
+          </form>
+        {% endif %}
+        {% if acoes.concluir %}
+          <form method="post" action="{% url 'ordens:concluir' ordem.pk %}">{% csrf_token %}
+            <button class="btn btn-success"><i class="bi bi-check2-circle"></i> Concluir serviço</button>
+          </form>
+        {% endif %}
+        {% if acoes.avaliar %}<a href="{% url 'ordens:avaliar' ordem.pk %}" class="btn btn-warning"><i class="bi bi-star"></i> Avaliar serviço</a>{% endif %}
+        {% if acoes.cancelar %}<a href="{% url 'ordens:cancelar' ordem.pk %}" class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar OS</a>{% endif %}
+      </div>
+    {% endif %}
   </div>
 
   <div class="col-lg-4">

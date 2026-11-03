@@ -115,6 +115,24 @@ def pode_cancelar(usuario, ordem):
     return usuario.pk == ordem.solicitante_id or pode_gerir(usuario, ordem)
 
 
+def acoes_disponiveis(usuario, ordem):
+    """Usado pelas telas para decidir quais botões mostrar e quais ações liberar."""
+    gestor = pode_gerir(usuario, ordem)
+    eh_tecnico_da_os = usuario.pk == ordem.tecnico_id
+    return {
+        "classificar": gestor and ordem.status == Status.ABERTO,
+        "atribuir": gestor and ordem.status == Status.CLASSIFICADO,
+        "iniciar": eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO,
+        "concluir": eh_tecnico_da_os and ordem.status == Status.EM_EXECUCAO,
+        "cancelar": pode_cancelar(usuario, ordem) and pode_mudar_para(ordem, Status.CANCELADO),
+        "avaliar": (
+            usuario.pk == ordem.solicitante_id
+            and ordem.status == Status.CONCLUIDO
+            and ordem.avaliacao is None
+        ),
+    }
+
+
 def cancelar(ordem, usuario, justificativa):
     """RN06: só o solicitante ou o gestor, sempre com justificativa."""
     if not pode_cancelar(usuario, ordem):

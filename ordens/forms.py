@@ -1,7 +1,9 @@
 from django import forms
 
 from contas.forms import EstiloBootstrapMixin
+from contas.models import Perfil, Usuario
 from estrutura.models import Equipamento, Local
+from seguranca.models import TipoServico
 
 from .models import OrdemServico
 
@@ -30,3 +32,38 @@ class AbrirOrdemForm(EstiloBootstrapMixin, forms.ModelForm):
         if local and equipamento and equipamento.local_id != local.pk:
             self.add_error("equipamento", "Este equipamento não fica no local escolhido.")
         return dados
+
+
+class ClassificarForm(EstiloBootstrapMixin, forms.Form):
+    tipo_servico = forms.ModelChoiceField(label="Tipo de serviço", queryset=TipoServico.objects.all())
+    riscos = forms.CharField(
+        label="Riscos identificados", required=False, widget=forms.Textarea(attrs={"rows": 3})
+    )
+
+
+class AtribuirForm(EstiloBootstrapMixin, forms.Form):
+    tecnico = forms.ModelChoiceField(label="Técnico", queryset=Usuario.objects.none())
+
+    def __init__(self, *args, ordem, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tecnico"].queryset = Usuario.objects.filter(
+            perfil=Perfil.TECNICO, is_active=True, unidade=ordem.local.unidade_id
+        )
+
+
+class CancelarForm(EstiloBootstrapMixin, forms.Form):
+    justificativa = forms.CharField(
+        label="Justificativa", widget=forms.Textarea(attrs={"rows": 3}),
+        help_text="Obrigatória. Explique por que a OS está sendo cancelada.",
+    )
+
+
+class AvaliarForm(EstiloBootstrapMixin, forms.Form):
+    nota = forms.TypedChoiceField(
+        label="Nota", coerce=int,
+        choices=[(5, "5 — Excelente"), (4, "4 — Bom"), (3, "3 — Regular"), (2, "2 — Ruim"), (1, "1 — Péssimo")],
+    )
+
+
+class ConfirmarForm(forms.Form):
+    pass
