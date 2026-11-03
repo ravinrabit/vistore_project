@@ -21,7 +21,8 @@ class LocalForm(EstiloBootstrapMixin, forms.ModelForm):
         campo = self.fields["unidade"]
         campo.queryset = Unidade.objects.filter(ativa=True)
         if not usuario.eh_admin:
-
+            # O gestor só enxerga a própria unidade, mesmo no select desabilitado
+            campo.queryset = Unidade.objects.filter(pk=usuario.unidade_id)
             campo.disabled = True
             campo.initial = usuario.unidade
 
