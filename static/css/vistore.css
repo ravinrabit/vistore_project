@@ -1,21 +1,155 @@
-/* Cores do Vistore: azul institucional + laranja de segurança */
+/* Vistore: identidade SENAC-DF (azul institucional + laranja de segurança) */
 :root {
-  --vistore-azul: #004a8d;
-  --vistore-laranja: #f7941d;
+  --vt-azul: #004a8d;
+  --vt-azul-hover: #003a6f;
+  --vt-azul-escuro: #00315e;
+  --vt-azul-claro: #e6eef7;
+  --vt-laranja: #f7941d;
+  --vt-laranja-hover: #e07f06;
+  --vt-laranja-texto: #a35200;
+  --vt-laranja-claro: #fff4e5;
+  --vt-texto: #1f2933;
+  --vt-texto-suave: #5a6472;
+  --vt-borda: #dde2e8;
+  --vt-borda-campo: #8a94a3;
+  --vt-fundo: #f4f6f9;
+  --vt-superficie: #fff;
+  --vt-perigo: #b42318;
+  --vt-sucesso: #1e6b34;
+
+  /* O Bootstrap reaproveita estas variáveis em links, foco, bordas etc. */
+  --bs-primary: var(--vt-azul);
+  --bs-primary-rgb: 0, 74, 141;
+  --bs-link-color: var(--vt-azul);
+  --bs-link-color-rgb: 0, 74, 141;
+  --bs-link-hover-color: var(--vt-azul-hover);
+  --bs-link-hover-color-rgb: 0, 58, 111;
+  --bs-body-color: var(--vt-texto);
+  --bs-body-bg: var(--vt-fundo);
+  --bs-secondary-color: var(--vt-texto-suave);
+  --bs-border-color: var(--vt-borda);
+  --bs-border-radius: .5rem;
+  --bs-danger: var(--vt-perigo);
+  --bs-danger-rgb: 180, 35, 24;
+  --bs-success: var(--vt-sucesso);
+  --bs-success-rgb: 30, 107, 52;
+  --bs-focus-ring-color: rgba(0, 74, 141, .35);
+  --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-body { background-color: #f4f6f9; }
+body { background-color: var(--vt-fundo); }
+h1, .h3 { font-weight: 700; color: var(--vt-azul-escuro); }
 
-.bg-vistore { background-color: var(--vistore-azul) !important; }
-.text-vistore { color: var(--vistore-azul) !important; }
+.bg-vistore { background-color: var(--vt-azul) !important; }
+.text-vistore { color: var(--vt-azul) !important; }
 
-.btn-vistore {
-  --bs-btn-color: #fff;
-  --bs-btn-bg: var(--vistore-azul);
-  --bs-btn-border-color: var(--vistore-azul);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: #003a6f;
-  --bs-btn-hover-border-color: #003a6f;
+/* Botões */
+.btn-vistore, .btn-primary {
+  --bs-btn-color: #fff; --bs-btn-bg: var(--vt-azul); --bs-btn-border-color: var(--vt-azul);
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--vt-azul-hover); --bs-btn-hover-border-color: var(--vt-azul-hover);
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--vt-azul-escuro); --bs-btn-active-border-color: var(--vt-azul-escuro);
+  --bs-btn-focus-shadow-rgb: 0, 74, 141;
 }
+.btn-outline-primary {
+  --bs-btn-color: var(--vt-azul); --bs-btn-border-color: var(--vt-azul);
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--vt-azul); --bs-btn-hover-border-color: var(--vt-azul);
+  --bs-btn-active-bg: var(--vt-azul-hover); --bs-btn-active-border-color: var(--vt-azul-hover);
+}
+/* Laranja sempre com texto escuro: branco sobre laranja não passa no contraste AA */
+.btn-destaque, .btn-warning {
+  --bs-btn-color: #1b1f24; --bs-btn-bg: var(--vt-laranja); --bs-btn-border-color: var(--vt-laranja);
+  --bs-btn-hover-color: #1b1f24; --bs-btn-hover-bg: var(--vt-laranja-hover); --bs-btn-hover-border-color: var(--vt-laranja-hover);
+  --bs-btn-active-color: #1b1f24; --bs-btn-active-bg: var(--vt-laranja-hover);
+}
+:focus-visible { outline: 3px solid var(--vt-azul); outline-offset: 2px; }
 
-.navbar .nav-link.active { border-bottom: 2px solid var(--vistore-laranja); }
+/* Navbar com a "fita" laranja de segurança */
+.navbar.bg-vistore {
+  border-bottom: 3px solid var(--vt-laranja);
+  --bs-navbar-color: rgba(255, 255, 255, .85);
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-active-color: #fff;
+}
+.navbar :focus-visible { outline-color: #fff; }
+.navbar-brand small { font-size: .7rem; font-weight: 600; letter-spacing: .06em; opacity: .85; }
+.navbar .nav-link { border-bottom: 2px solid transparent; }
+.navbar .nav-link.active { font-weight: 600; border-bottom-color: var(--vt-laranja); }
+
+/* Cards */
+.card { --bs-card-border-width: 0; box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08); }
+.card-header { background: var(--vt-superficie); font-weight: 600; }
+
+/* Card de indicador dos painéis */
+.card-indicador { --cor: var(--vt-azul); --cor-fundo: var(--vt-azul-claro); border-left: 4px solid var(--cor) !important; }
+.card-indicador--warning { --cor: var(--vt-laranja); --cor-fundo: var(--vt-laranja-claro); }
+.card-indicador--danger  { --cor: var(--vt-perigo);  --cor-fundo: #fdeceb; }
+.card-indicador--success { --cor: var(--vt-sucesso); --cor-fundo: #e3f4e8; }
+.card-indicador__titulo { color: var(--vt-texto-suave); font-size: .875rem; text-wrap: balance; }
+.card-indicador__valor { font-size: 2rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.card-indicador__icone {
+  flex: 0 0 auto; width: 2.75rem; height: 2.75rem; border-radius: 50%;
+  display: grid; place-items: center; font-size: 1.35rem;
+  background: var(--cor-fundo); color: var(--cor);
+}
+a.card-indicador:hover { box-shadow: 0 4px 12px rgba(16, 24, 40, .12); }
+
+/* Tabelas */
+.tabela-vistore { --bs-table-hover-bg: var(--vt-azul-claro); }
+.tabela-vistore thead th {
+  background: var(--vt-superficie); color: var(--vt-texto-suave);
+  font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  border-bottom: 2px solid var(--vt-borda);
+}
+.tabela-vistore td, .tabela-vistore th { padding: .75rem 1rem; }
+.tabela-vistore tbody tr { position: relative; } /* o stretched-link cobre só a própria linha */
+.os-urgente td:first-child { box-shadow: inset 4px 0 0 var(--vt-perigo); }
+
+/* Badges de status e prioridade: o texto sempre aparece, a cor só reforça */
+.badge-os { font-weight: 600; padding: .35em .65em; border-radius: 999px; border: 1px solid transparent; }
+.badge-os--aberto       { color: #3d4752; background: #e9ecef; }
+.badge-os--classificado { color: #00527a; background: #e0f2fb; }
+.badge-os--atribuido    { color: var(--vt-azul); background: var(--vt-azul-claro); }
+.badge-os--execucao     { color: #7a3d00; background: #fff1df; border-color: var(--vt-laranja); }
+.badge-os--concluido    { color: var(--vt-sucesso); background: #e3f4e8; }
+.badge-os--cancelado    { color: #fff; background: #343a40; }
+.badge-os--baixa        { color: #3d4752; background: #fff; border-color: var(--vt-borda-campo); }
+.badge-os--media        { color: #3d4752; background: #e9ecef; }
+.badge-os--alta         { color: #7a3d00; background: #fff1df; }
+.badge-os--urgente      { color: #fff; background: var(--vt-perigo); }
+
+/* Formulários */
+.form-control, .form-select { border-color: var(--vt-borda-campo); }
+.form-control:focus, .form-select:focus { border-color: var(--vt-azul); box-shadow: 0 0 0 .2rem var(--bs-focus-ring-color); }
+.form-label { font-weight: 600; }
+.obrigatorio { color: var(--vt-laranja-texto); }
+.campo-invalido .form-control, .campo-invalido .form-select { border-color: var(--vt-perigo); }
+.erro-campo { color: var(--vt-perigo); font-size: .875rem; margin-top: .25rem; }
+
+/* Linha do tempo */
+.linha-tempo { list-style: none; margin: 0; padding: 1rem 1rem 1rem 2.25rem; position: relative; }
+.linha-tempo::before { content: ""; position: absolute; left: 1.2rem; top: 1.25rem; bottom: 1.25rem; width: 2px; background: var(--vt-borda); }
+.linha-tempo__item { position: relative; padding-bottom: 1rem; }
+.linha-tempo__item:last-child { padding-bottom: 0; }
+.linha-tempo__ponto {
+  position: absolute; left: -1.4rem; top: .3rem; width: .85rem; height: .85rem; border-radius: 50%;
+  background: var(--vt-superficie); border: 3px solid var(--vt-azul);
+}
+.linha-tempo__item:last-child .linha-tempo__ponto { background: var(--vt-laranja); border-color: var(--vt-laranja); }
+
+/* Estados vazios */
+.estado-vazio { text-align: center; padding: 2.5rem 1rem !important; color: var(--vt-texto-suave); }
+.estado-vazio > .bi { font-size: 2.5rem; display: block; margin-bottom: .5rem; color: var(--vt-borda-campo); }
+
+/* Avaliação e alerta de segurança */
+.estrelas { color: var(--vt-laranja-texto); }
+.alerta-seguranca { background: var(--vt-laranja-claro); border-left: 4px solid var(--vt-laranja); color: #7a3d00; }
+
+/* Login */
+.pagina-login { background: linear-gradient(180deg, var(--vt-azul) 0 18rem, var(--vt-fundo) 18rem); }
+.pagina-login .card-login { border-top: 4px solid var(--vt-laranja) !important; }
+.pagina-login .cabecalho-login { color: #fff; }
+.pagina-login .cabecalho-login h1 { color: #fff; }
+.pagina-login .cabecalho-login p { color: rgba(255, 255, 255, .9); }
+
+/* Rodapé */
+.rodape { background: var(--vt-superficie); border-top: 3px solid var(--vt-laranja); color: var(--vt-texto-suave); }
