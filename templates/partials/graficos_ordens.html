@@ -1,0 +1,67 @@
+{# Gráficos dos painéis (Chart.js). Parâmetros: por_status, por_semana. Cada gráfico tem uma tabela com os mesmos números. #}
+<div class="row g-3 mt-1">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Ordens por status</div>
+      <div class="card-body">
+        <div style="height: 240px"><canvas id="grafico-status" role="img" aria-label="Gráfico de barras: ordens de serviço por status"></canvas></div>
+        <details class="mt-2 small">
+          <summary>Ver os números em tabela</summary>
+          <table class="table table-sm mt-2 mb-0">
+            <thead><tr><th>Status</th><th class="text-end">OS</th></tr></thead>
+            <tbody>{% for item in por_status %}<tr><td>{{ item.rotulo }}</td><td class="text-end">{{ item.valor }}</td></tr>{% endfor %}</tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Chamados abertos por semana</div>
+      <div class="card-body">
+        <div style="height: 240px"><canvas id="grafico-semanas" role="img" aria-label="Gráfico de colunas: chamados abertos nas últimas 8 semanas"></canvas></div>
+        <details class="mt-2 small">
+          <summary>Ver os números em tabela</summary>
+          <table class="table table-sm mt-2 mb-0">
+            <thead><tr><th>Semana de</th><th class="text-end">Chamados</th></tr></thead>
+            <tbody>{% for item in por_semana %}<tr><td>{{ item.rotulo }}</td><td class="text-end">{{ item.valor }}</td></tr>{% endfor %}</tbody>
+          </table>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+{{ por_status|json_script:"dados-status" }}
+{{ por_semana|json_script:"dados-semanas" }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  (function () {
+    // Uma série por gráfico: uma cor só (azul SENAC clareado para passar na faixa de luminosidade)
+    const COR = "#1f66b0";
+    const TEXTO = "#5a6472";
+    const GRADE = "#e9ecef";
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    Chart.defaults.color = TEXTO;
+
+    function barras(id, dados, horizontal) {
+      const eixoValor = { beginAtZero: true, ticks: { precision: 0 }, grid: { color: GRADE }, border: { display: false } };
+      const eixoCategoria = { grid: { display: false }, border: { color: GRADE } };
+      new Chart(document.getElementById(id), {
+        type: "bar",
+        data: {
+          labels: dados.map(d => d.rotulo),
+          datasets: [{ data: dados.map(d => d.valor), backgroundColor: COR, borderRadius: 4, maxBarThickness: 28 }],
+        },
+        options: {
+          indexAxis: horizontal ? "y" : "x",
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { displayColors: false } },
+          scales: horizontal ? { x: eixoValor, y: eixoCategoria } : { x: eixoCategoria, y: eixoValor },
+        },
+      });
+    }
+
+    barras("grafico-status", JSON.parse(document.getElementById("dados-status").textContent), true);
+    barras("grafico-semanas", JSON.parse(document.getElementById("dados-semanas").textContent), false);
+  })();
+</script>

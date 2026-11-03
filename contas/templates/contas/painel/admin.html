@@ -13,5 +13,6 @@
   <a href="{% url 'ordens:lista' %}?status=ABERTO" class="btn btn-vistore"><i class="bi bi-inbox" aria-hidden="true"></i> Chamados para classificar</a>
   <a href="{% url 'ordens:lista' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul" aria-hidden="true"></i> Todas as ordens</a>
 </div>
+{% include "partials/graficos_ordens.html" %}
 {% include "contas/painel/_atalhos_cadastro.html" %}
 {% endblock %}

@@ -41,3 +41,14 @@ class PainelTests(DadosOrdensTestCase):
         contexto = self.contexto(self.solicitante)
         self.assertEqual(contexto["para_avaliar"], 1)
         self.assertEqual(list(contexto["ultimas"]), [concluida])
+
+    def test_graficos_do_gestor_contam_so_a_unidade(self):
+        self.nova_ordem()
+        self.ordem_atribuida()
+        self.nova_ordem(local=self.local_enn)
+        contexto = self.contexto(self.gestor)
+        por_status = {item["rotulo"]: item["valor"] for item in contexto["por_status"]}
+        self.assertEqual(por_status["Aberto"], 1)
+        self.assertEqual(por_status["Atribuído"], 1)
+        self.assertEqual(len(contexto["por_semana"]), 8)
+        self.assertEqual(contexto["por_semana"][-1]["valor"], 2)  # as 2 OS desta semana

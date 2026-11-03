@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 
 from estrutura.models import Equipamento, Local, Unidade
+from ordens import relatorios
 from ordens.models import OrdemServico, Prioridade, Status
 from ordens.services import ordenar_por_prioridade
 from seguranca.models import TreinamentoTecnico
@@ -39,6 +40,8 @@ class PainelView(LoginRequiredMixin, TemplateView):
                 total_usuarios=Usuario.objects.filter(is_active=True).count(),
                 total_locais=Local.objects.count(),
                 total_equipamentos=Equipamento.objects.count(),
+                por_status=relatorios.ordens_por_status(ordens),
+                por_semana=relatorios.chamados_por_semana(ordens),
             )
         elif usuario.eh_gestor:
             daqui_30_dias = timezone.localdate() + timedelta(days=30)
@@ -54,6 +57,8 @@ class PainelView(LoginRequiredMixin, TemplateView):
                 pendencias=ordenar_por_prioridade(
                     da_unidade.filter(status__in=[Status.ABERTO, Status.CLASSIFICADO])
                 )[:5],
+                por_status=relatorios.ordens_por_status(da_unidade),
+                por_semana=relatorios.chamados_por_semana(da_unidade),
                 treinamentos_vencendo=TreinamentoTecnico.objects.filter(
                     tecnico__unidade=usuario.unidade,
                     data_validade__range=(timezone.localdate(), daqui_30_dias),
