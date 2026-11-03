@@ -3,7 +3,7 @@ from django import forms
 from contas.forms import EstiloBootstrapMixin
 from contas.models import Usuario
 from estrutura.models import Equipamento, Local
-from seguranca.models import TipoServico
+from seguranca.models import EPI, TipoServico
 from seguranca.services import codigos_exigidos, tecnicos_aptos
 
 from .models import OrdemServico
@@ -70,6 +70,26 @@ class AvaliarForm(EstiloBootstrapMixin, forms.Form):
         label="Nota", coerce=int,
         choices=[(5, "5 — Excelente"), (4, "4 — Bom"), (3, "3 — Regular"), (2, "2 — Ruim"), (1, "1 — Péssimo")],
     )
+
+
+class ChecklistForm(EstiloBootstrapMixin, forms.Form):
+    epis = forms.ModelMultipleChoiceField(
+        label="EPIs em uso", queryset=EPI.objects.none(), required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
+    area_isolada = forms.BooleanField(label="A área está isolada e sinalizada", required=False)
+
+    def __init__(self, *args, ordem, **kwargs):
+        super().__init__(*args, **kwargs)
+        campo = self.fields["epis"]
+        campo.queryset = ordem.tipo_servico.epis_exigidos.all()
+        if campo.queryset.exists():
+            campo.help_text = "Marque cada EPI exigido pelo tipo de serviço que você está usando agora."
+        else:
+            del self.fields["epis"]
+
+    def clean_epis(self):
+        return list(self.cleaned_data["epis"])
 
 
 class ConfirmarForm(forms.Form):

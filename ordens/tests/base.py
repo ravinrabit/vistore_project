@@ -41,5 +41,6 @@ class DadosOrdensTestCase(TestCase):
 
     def ordem_concluida(self):
         ordem = self.ordem_atribuida()
+        services.confirmar_checklist(ordem, self.tecnico, [], area_isolada=True)
         services.iniciar(ordem, self.tecnico)
         return services.concluir(ordem, self.tecnico)

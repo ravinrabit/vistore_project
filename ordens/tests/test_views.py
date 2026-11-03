@@ -100,6 +100,7 @@ class AcoesTests(DadosOrdensTestCase):
         ordem = self.nova_ordem()
         self.post(self.gestor, "classificar", ordem, {"tipo_servico": self.tipo.pk, "riscos": "Piso molhado"})
         self.post(self.gestor, "atribuir", ordem, {"tecnico": self.tecnico.pk})
+        self.post(self.tecnico, "checklist", ordem, {"area_isolada": "on"})
         self.post(self.tecnico, "iniciar", ordem)
         self.post(self.tecnico, "concluir", ordem)
         self.post(self.solicitante, "avaliar", ordem, {"nota": 4})

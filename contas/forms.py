@@ -27,7 +27,7 @@ class EstiloBootstrapMixin:
         super().__init__(*args, **kwargs)
         for campo in self.fields.values():
             widget = campo.widget
-            if isinstance(widget, forms.CheckboxInput):
+            if isinstance(widget, (forms.CheckboxInput, forms.CheckboxSelectMultiple)):
                 widget.attrs.setdefault("class", "form-check-input")
             elif isinstance(widget, forms.Select):
                 widget.attrs.setdefault("class", "form-select")

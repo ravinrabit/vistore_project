@@ -32,6 +32,10 @@
           <dt class="col-sm-4">Aberta</dt><dd class="col-sm-8">{{ ordem.aberta_em|date:"d/m/Y H:i" }} <span class="text-body-secondary small">({{ ordem.aberta_em|naturaltime }})</span></dd>
           {% if ordem.iniciada_em %}<dt class="col-sm-4">Iniciada</dt><dd class="col-sm-8">{{ ordem.iniciada_em|date:"d/m/Y H:i" }}</dd>{% endif %}
           {% if ordem.concluida_em %}<dt class="col-sm-4">Concluída</dt><dd class="col-sm-8">{{ ordem.concluida_em|date:"d/m/Y H:i" }}</dd>{% endif %}
+          {% if ordem.checklist.confirmado_em %}
+            <dt class="col-sm-4">Checklist de segurança</dt>
+            <dd class="col-sm-8"><i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i> Confirmado em {{ ordem.checklist.confirmado_em|date:"d/m/Y H:i" }}</dd>
+          {% endif %}
           {% if ordem.justificativa_cancelamento %}
             <dt class="col-sm-4">Motivo do cancelamento</dt><dd class="col-sm-8">{{ ordem.justificativa_cancelamento|linebreaksbr }}</dd>
           {% endif %}
@@ -52,6 +56,7 @@
         <div class="card-body d-flex flex-wrap gap-2">
           {% if acoes.classificar %}<a href="{% url 'ordens:classificar' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-tags" aria-hidden="true"></i> Classificar</a>{% endif %}
           {% if acoes.atribuir %}<a href="{% url 'ordens:atribuir' ordem.pk %}" class="btn btn-vistore"><i class="bi bi-person-gear" aria-hidden="true"></i> Atribuir técnico</a>{% endif %}
+          {% if acoes.checklist %}<a href="{% url 'ordens:checklist' ordem.pk %}" class="btn btn-destaque"><i class="bi bi-clipboard2-check" aria-hidden="true"></i> Preencher checklist de segurança</a>{% endif %}
           {% if acoes.iniciar %}
             <form method="post" action="{% url 'ordens:iniciar' ordem.pk %}" class="m-0">{% csrf_token %}
               <button class="btn btn-vistore"><i class="bi bi-play-fill" aria-hidden="true"></i> Iniciar serviço</button>

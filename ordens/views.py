@@ -156,6 +156,23 @@ class AtribuirView(AcaoOrdemView):
         services.atribuir(self.object, self.request.user, dados["tecnico"])
 
 
+class ChecklistView(AcaoOrdemView):
+    acao = "checklist"
+    form_class = forms.ChecklistForm
+    titulo = "Checklist de segurança"
+    rotulo_botao = "Confirmar checklist"
+    aviso = "Nenhum serviço começa sem segurança: o serviço só pode ser iniciado depois deste checklist."
+    mensagem_sucesso = "Checklist da OS #{ordem.pk} confirmado. Você já pode iniciar o serviço."
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "ordem": self.object}
+
+    def executar(self, dados):
+        services.confirmar_checklist(
+            self.object, self.request.user, dados.get("epis", []), dados["area_isolada"]
+        )
+
+
 class IniciarView(AcaoOrdemView):
     acao = "iniciar"
     titulo = "Iniciar serviço"

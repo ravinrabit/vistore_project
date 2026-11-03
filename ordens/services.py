@@ -6,7 +6,7 @@ from django.utils import timezone
 from contas.models import Perfil
 from seguranca.services import treinamentos_pendentes
 
-from .models import HistoricoStatus, OrdemServico, Prioridade, Status
+from .models import ChecklistSeguranca, HistoricoStatus, OrdemServico, Prioridade, Status
 
 # RN05: para cada status, os próximos status permitidos.
 TRANSICOES = {
@@ -103,10 +103,36 @@ def atribuir(ordem, usuario, tecnico):
     return mudar_status(ordem, Status.ATRIBUIDO, usuario)
 
 
+def checklist_confirmado(ordem):
+    return ChecklistSeguranca.objects.filter(ordem=ordem, confirmado_em__isnull=False).exists()
+
+
+@transaction.atomic
+def confirmar_checklist(ordem, usuario, epis, area_isolada):
+    """RN02: o técnico confirma cada EPI exigido pelo tipo de serviço e o isolamento da área."""
+    if usuario.pk != ordem.tecnico_id:
+        raise PermissionDenied("Só o técnico atribuído preenche o checklist.")
+    if ordem.status != Status.ATRIBUIDO:
+        raise ValidationError("O checklist é preenchido antes de iniciar o serviço.")
+    exigidos = ordem.tipo_servico.epis_exigidos.all()
+    faltando = [epi.nome for epi in exigidos if epi not in epis]
+    if faltando:
+        raise ValidationError(f"Confirme todos os EPIs exigidos. Faltam: {', '.join(faltando)}.")
+    if not area_isolada:
+        raise ValidationError("Confirme que a área está isolada e sinalizada.")
+    checklist, _ = ChecklistSeguranca.objects.get_or_create(ordem=ordem)
+    checklist.area_isolada = True
+    checklist.confirmado_em = timezone.now()
+    checklist.save()
+    checklist.epis_confirmados.set(epis)
+    return checklist
+
+
 def iniciar(ordem, usuario):
     if usuario.pk != ordem.tecnico_id:
         raise PermissionDenied("Só o técnico atribuído inicia o serviço.")
-    # O checklist de segurança (RN02) passa a ser exigido aqui na etapa 4.
+    if not checklist_confirmado(ordem):
+        raise ValidationError("Preencha o checklist de segurança antes de iniciar (RN02).")
     return mudar_status(ordem, Status.EM_EXECUCAO, usuario)
 
 
@@ -124,10 +150,12 @@ def acoes_disponiveis(usuario, ordem):
     """Usado pelas telas para decidir quais botões mostrar e quais ações liberar."""
     gestor = pode_gerir(usuario, ordem)
     eh_tecnico_da_os = usuario.pk == ordem.tecnico_id
+    confirmado = eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO and checklist_confirmado(ordem)
     return {
         "classificar": gestor and ordem.status == Status.ABERTO,
         "atribuir": gestor and ordem.status == Status.CLASSIFICADO,
-        "iniciar": eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO,
+        "checklist": eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO and not confirmado,
+        "iniciar": eh_tecnico_da_os and ordem.status == Status.ATRIBUIDO and confirmado,
         "concluir": eh_tecnico_da_os and ordem.status == Status.EM_EXECUCAO,
         "cancelar": pode_cancelar(usuario, ordem) and pode_mudar_para(ordem, Status.CANCELADO),
         "avaliar": (
