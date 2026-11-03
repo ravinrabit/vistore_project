@@ -48,6 +48,7 @@ class PainelView(LoginRequiredMixin, TemplateView):
                 total_equipamentos=Equipamento.objects.filter(local__unidade=usuario.unidade).count(),
                 ordens_abertas=da_unidade.filter(status=Status.ABERTO).count(),
                 aguardando_atribuicao=da_unidade.filter(status=Status.CLASSIFICADO).count(),
+                em_revisao=da_unidade.filter(requer_revisao_seguranca=True).count(),
                 urgentes_pendentes=da_unidade.filter(prioridade=Prioridade.URGENTE)
                 .exclude(status__in=finalizados).count(),
                 pendencias=ordenar_por_prioridade(

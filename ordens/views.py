@@ -42,13 +42,16 @@ class OrdemListView(OrdensDoUsuarioMixin, BuscaMixin, ListView):
         status = self.request.GET.get("status")
         if status in Status.values:
             ordens = ordens.filter(status=status)
+        if self.request.GET.get("revisao"):
+            ordens = ordens.filter(requer_revisao_seguranca=True)
         return services.ordenar_por_prioridade(ordens)
 
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         status = self.request.GET.get("status", "")
         contexto.update(
-            status_escolhido=status if status in Status.values else "", opcoes_status=Status.choices
+            status_escolhido=status if status in Status.values else "", opcoes_status=Status.choices,
+            so_revisao=bool(self.request.GET.get("revisao")),
         )
         return contexto
 

@@ -115,6 +115,7 @@ contas/      Usuario (login por e-mail), Perfil, login/logout, painel por perfil
 estrutura/   Unidade, Local, Equipamento + CRUD completo; comando popular_dados
 seguranca/   Treinamento, TreinamentoTecnico (valido_em(data), calcula data_validade),
              EPI, TipoServico (eletrico, trabalho_em_altura, M2M treinamentos/EPIs), Incidente
+             services.py (codigos_exigidos, tecnicos_aptos, registrar_incidente) + CRUDs
 ordens/      OrdemServico, HistoricoStatus, ChecklistSeguranca (1:1), Preventiva
              Choices: Status, Prioridade
              services.py (TRANSICOES, mudar_status, acoes_disponiveis, ordenar_por_prioridade)
@@ -146,8 +147,8 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 | 1 | Documentação (requisitos, perfis, regras, modelo de dados, fluxograma) | feito |
 | 2 | Base: Django + MySQL, login e perfis, unidades/locais/equipamentos, todos os models, `popular_dados`, 21 testes | **feito** |
 | 3 | Ordens de serviço: `services.py`, telas por perfil, linha do tempo, 34 testes (55 no total) | **feito** |
-| 4 | Segurança | **próxima** |
-| 5 | Extras | a fazer |
+| 4 | Segurança: NRs na atribuição, checklist, incidentes, `verificar_treinamentos`, cadastros, 35 testes (90 no total) | **feito** |
+| 5 | Extras | **próxima** |
 | 6 | Testes, ajustes visuais, deploy, manual, apresentação final | a fazer |
 
 ### Etapa 3: ordens de serviço (feita)
@@ -161,9 +162,11 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 - Telas: lista por perfil, detalhe da OS com linha do tempo do histórico.
 - Testes da RN05/RN06/RN07.
 
-### Etapa 4: segurança (próxima)
-- Pontos de entrada já marcados no código: `services.atribuir` (RN01/RN04) e `services.iniciar`
-  (RN02). O `AtribuirForm` hoje lista todos os técnicos ativos da unidade.
+### Etapa 4: segurança (feita)
+- Decisões: OS em revisão de segurança (RN08) só é concluída depois que o gestor libera;
+  `HistoricoStatus.usuario` vazio = mudança feita pelo sistema (RN03).
+- Agendar `python manage.py verificar_treinamentos` uma vez por dia (Agendador de Tarefas do
+  Windows ou cron).
 - RN01/RN04: na atribuição, validar todas as NRs exigidas (M2M + NR-10 se `eletrico`, NR-35 se
   `trabalho_em_altura`) com `TreinamentoTecnico.valido_em(data)`. O select de técnicos mostra só
   os aptos.
@@ -174,7 +177,7 @@ static/css/vistore.css   cores: azul #004a8d, laranja #f7941d
 - CRUD de treinamentos, treinamentos dos técnicos, EPIs e tipos de serviço (Gestor/Admin).
 - Testes da RN01, RN02, RN03 e RN08.
 
-### Etapa 5: extras
+### Etapa 5: extras (próxima)
 - RN09: comando `gerar_preventivas` (cria a OS 7 dias antes e avança `proxima_data`).
 - QR Code por equipamento (abre chamado já com o equipamento preenchido).
 - Alertas por e-mail (no desenvolvimento, `EMAIL_BACKEND` de console).

@@ -2,5 +2,8 @@
 <div class="d-flex flex-wrap gap-2">
   <a href="{% url 'estrutura:local_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo local</a>
   <a href="{% url 'estrutura:equipamento_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo equipamento</a>
+  <a href="{% url 'seguranca:realizacao_nova' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Treinamento de técnico</a>
+  <a href="{% url 'seguranca:epi_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo EPI</a>
+  {% if user.eh_admin %}<a href="{% url 'seguranca:tipo_novo' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo tipo de serviço</a>{% endif %}
   {% if user.eh_admin %}<a href="{% url 'estrutura:unidade_nova' %}" class="btn btn-outline-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova unidade</a>{% endif %}
 </div>

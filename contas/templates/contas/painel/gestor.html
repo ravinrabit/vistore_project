@@ -8,8 +8,16 @@
   {% include "partials/card_numero.html" with titulo="Chamados para classificar" valor=ordens_abertas icone="inbox" cor="warning" url=url_ordens|add:"?status=ABERTO" %}
   {% include "partials/card_numero.html" with titulo="Aguardando atribuição" valor=aguardando_atribuicao icone="person-gear" url=url_ordens|add:"?status=CLASSIFICADO" %}
   {% include "partials/card_numero.html" with titulo="Urgentes pendentes" valor=urgentes_pendentes icone="exclamation-octagon" cor="danger" url=url_ordens %}
-  {% include "partials/card_numero.html" with titulo="Treinamentos vencendo (30 dias)" valor=treinamentos_vencendo icone="exclamation-triangle" cor="danger" %}
+  {% url 'seguranca:realizacao_lista' as url_treinamentos %}
+  {% include "partials/card_numero.html" with titulo="Treinamentos vencendo (30 dias)" valor=treinamentos_vencendo icone="exclamation-triangle" cor="danger" url=url_treinamentos %}
 </div>
+{% if em_revisao %}
+  <div class="alert alerta-seguranca d-flex gap-2 mt-3" role="status">
+    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+    <div>{{ em_revisao }} OS em revisão de segurança por incidente com lesão ou afastamento.
+      <a href="{{ url_ordens }}?revisao=1" class="alert-link">Revisar</a></div>
+  </div>
+{% endif %}
 
 <div class="mt-4">
   {% include "partials/lista_ordens_resumo.html" with ordens=pendencias titulo="Precisa da sua ação" vazio="Nenhum chamado esperando classificação ou atribuição." url_todas=url_ordens %}

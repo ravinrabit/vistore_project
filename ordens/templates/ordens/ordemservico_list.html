@@ -9,6 +9,9 @@
   {% endif %}
 </div>
 
+{% if so_revisao %}
+  <div class="alert alerta-seguranca" role="status"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Mostrando só as OS em revisão de segurança.</div>
+{% endif %}
 <form method="get" class="row g-2 mb-3" role="search">
   <div class="col-12 col-sm-auto">
     <select name="status" class="form-select" aria-label="Filtrar por status">
@@ -23,7 +26,8 @@
   </div>
   <div class="col-auto d-flex gap-2">
     <button type="submit" class="btn btn-outline-primary"><i class="bi bi-funnel" aria-hidden="true"></i> Filtrar</button>
-    {% if q or status_escolhido %}<a href="{% url 'ordens:lista' %}" class="btn btn-link">Limpar</a>{% endif %}
+    {% if so_revisao %}<input type="hidden" name="revisao" value="1">{% endif %}
+    {% if q or status_escolhido or so_revisao %}<a href="{% url 'ordens:lista' %}" class="btn btn-link">Limpar</a>{% endif %}
   </div>
 </form>
 
@@ -46,7 +50,7 @@
                 {{ ordem.get_prioridade_display }}
               </span>
             </td>
-            <td><span class="badge badge-os badge-os--{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span></td>
+            <td><span class="badge badge-os badge-os--{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span>{% if ordem.requer_revisao_seguranca %} <span class="badge badge-os badge-os--alta" title="Em revisão de segurança"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Revisão</span>{% endif %}</td>
             <td>{% if user.eh_admin %}<span class="small text-body-secondary d-block">{{ ordem.local.unidade }}</span>{% endif %}{{ ordem.local.sala }}</td>
             <td class="d-none d-md-table-cell">{{ ordem.descricao|truncatechars:60 }}</td>
             <td class="d-none d-lg-table-cell">{{ ordem.tecnico.nome|default:"—" }}</td>
@@ -55,7 +59,7 @@
         {% empty %}
           <tr><td colspan="7" class="estado-vazio">
             <i class="bi bi-clipboard-x" aria-hidden="true"></i>
-            {% if q or status_escolhido %}
+            {% if q or status_escolhido or so_revisao %}
               Nenhuma ordem de serviço encontrada com esse filtro.
             {% elif user.eh_solicitante %}
               Você ainda não abriu nenhum chamado.
