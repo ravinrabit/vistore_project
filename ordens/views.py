@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, DetailView, ListView
 
 from contas.mixins import PerfilRequeridoMixin
 from estrutura.views import BuscaMixin, UsuarioNoFormMixin
@@ -47,6 +47,16 @@ class OrdemListView(OrdensDoUsuarioMixin, BuscaMixin, ListView):
         return contexto
 
 
+class OrdemDetailView(OrdensDoUsuarioMixin, DetailView):
+    model = OrdemServico
+    context_object_name = "ordem"
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto["historico"] = self.object.historico.select_related("usuario")
+        return contexto
+
+
 class OrdemCreateView(PerfilRequeridoMixin, UsuarioNoFormMixin, CreateView):
     model = OrdemServico
     form_class = AbrirOrdemForm
@@ -62,4 +72,4 @@ class OrdemCreateView(PerfilRequeridoMixin, UsuarioNoFormMixin, CreateView):
             descricao=dados["descricao"], prioridade=dados["prioridade"],
         )
         messages.success(self.request, f"Chamado #{self.object.pk} aberto.")
-        return redirect(self.success_url)
+        return redirect("ordens:detalhe", pk=self.object.pk)

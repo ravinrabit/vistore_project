@@ -29,7 +29,7 @@
       <tbody>
         {% for ordem in object_list %}
           <tr>
-            <td class="fw-semibold">{{ ordem.pk }}</td>
+            <td class="fw-semibold"><a href="{% url 'ordens:detalhe' ordem.pk %}" class="stretched-link text-decoration-none">{{ ordem.pk }}</a></td>
             <td><span class="badge text-bg-{{ ordem.prioridade|cor_prioridade }}">{{ ordem.get_prioridade_display }}</span></td>
             <td><span class="badge text-bg-{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span></td>
             <td>{% if user.eh_admin %}{{ ordem.local.unidade }} · {% endif %}{{ ordem.local.sala }}</td>

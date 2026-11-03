@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load ordens_tags %}
+{% block titulo %}OS #{{ ordem.pk }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <a href="{% url 'ordens:lista' %}" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Voltar para a lista</a>
+    <h1 class="h3 m-0">OS #{{ ordem.pk }}</h1>
+  </div>
+  <div class="d-flex gap-2">
+    <span class="badge fs-6 text-bg-{{ ordem.prioridade|cor_prioridade }}">{{ ordem.get_prioridade_display }}</span>
+    <span class="badge fs-6 text-bg-{{ ordem.status|cor_status }}">{{ ordem.get_status_display }}</span>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-body">
+        <h2 class="h6 text-body-secondary">Descrição</h2>
+        <p class="mb-3">{{ ordem.descricao|linebreaksbr }}</p>
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Local</dt><dd class="col-sm-8">{{ ordem.local }}</dd>
+          <dt class="col-sm-4">Equipamento</dt><dd class="col-sm-8">{{ ordem.equipamento|default:"—" }}</dd>
+          <dt class="col-sm-4">Solicitante</dt><dd class="col-sm-8">{{ ordem.solicitante.nome }}</dd>
+          <dt class="col-sm-4">Tipo de serviço</dt><dd class="col-sm-8">{{ ordem.tipo_servico|default:"A classificar" }}</dd>
+          <dt class="col-sm-4">Riscos identificados</dt><dd class="col-sm-8">{{ ordem.riscos|default:"—"|linebreaksbr }}</dd>
+          <dt class="col-sm-4">Técnico</dt><dd class="col-sm-8">{{ ordem.tecnico.nome|default:"Não atribuído" }}</dd>
+          {% if ordem.justificativa_cancelamento %}
+            <dt class="col-sm-4">Motivo do cancelamento</dt><dd class="col-sm-8">{{ ordem.justificativa_cancelamento|linebreaksbr }}</dd>
+          {% endif %}
+          {% if ordem.avaliacao %}
+            <dt class="col-sm-4">Avaliação</dt>
+            <dd class="col-sm-8 text-warning" title="{{ ordem.avaliacao }} de 5">
+              {% for n in "12345" %}<i class="bi bi-star{% if forloop.counter <= ordem.avaliacao %}-fill{% endif %}"></i>{% endfor %}
+            </dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-clock-history"></i> Linha do tempo</div>
+      <ul class="list-group list-group-flush">
+        {% for item in historico %}
+          <li class="list-group-item">
+            <span class="badge text-bg-{{ item.status_novo|cor_status }}">{{ item.get_status_novo_display }}</span>
+            <div class="small text-body-secondary mt-1">
+              {{ item.data_hora|date:"d/m/Y H:i" }} · {{ item.usuario.nome }}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
