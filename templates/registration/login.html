@@ -1,33 +1,36 @@
 {% extends "base.html" %}
 {% block titulo %}Entrar{% endblock %}
+{% block classe_body %}pagina-login{% endblock %}
 {% block conteudo %}
-<div class="row justify-content-center mt-md-5">
-  <div class="col-sm-10 col-md-6 col-lg-4">
-    <div class="text-center mb-4">
-      <i class="bi bi-shield-check display-4 text-vistore"></i>
+<div class="row justify-content-center pt-3 pt-md-5">
+  <div class="col-12 col-sm-10 col-md-6 col-lg-4">
+    <div class="cabecalho-login text-center mb-4">
+      {# Espaço para o logotipo oficial do SENAC-DF, se houver autorização de uso #}
+      <i class="bi bi-shield-check display-4" aria-hidden="true"></i>
       <h1 class="h3 fw-bold mt-2">Vistore</h1>
-      <p class="text-body-secondary">Manutenção predial com segurança do trabalho</p>
+      <p class="mb-0">Manutenção predial com segurança do trabalho · SENAC-DF</p>
     </div>
-    <div class="card shadow-sm border-0">
+    <div class="card card-login shadow">
       <div class="card-body p-4">
+        <h2 class="h5 mb-3">Entrar</h2>
         <form method="post" novalidate>
           {% csrf_token %}
           {% if form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors|join:" " }}</div>
+            <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ form.non_field_errors|join:" " }}</div>
           {% endif %}
-          <div class="mb-3">
-            <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
-            {{ form.username }}
-          </div>
-          <div class="mb-3">
-            <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
-            {{ form.password }}
-          </div>
+          {% for campo in form %}
+            <div class="mb-3 {% if campo.errors %}campo-invalido{% endif %}">
+              <label for="{{ campo.id_for_label }}" class="form-label">{{ campo.label }}</label>
+              {{ campo }}
+              {% for erro in campo.errors %}<div class="erro-campo" role="alert">{{ erro }}</div>{% endfor %}
+            </div>
+          {% endfor %}
           <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-vistore w-100">Entrar</button>
+          <button type="submit" class="btn btn-vistore w-100 py-2 mt-2">Entrar</button>
         </form>
       </div>
     </div>
+    <p class="text-center small text-body-secondary mt-3">Nenhum serviço começa sem segurança.</p>
   </div>
 </div>
 {% endblock %}
